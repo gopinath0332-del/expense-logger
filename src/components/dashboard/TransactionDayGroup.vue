@@ -7,8 +7,8 @@
         <div class="day-badge badge bg-secondary">{{ day.dayName }}</div>
       </div>
       <div class="day-summary d-flex gap-3">
-        <span class="text-primary">₹ {{ formatNumber(day.income) }}</span>
-        <span class="text-danger">₹ {{ formatNumber(day.expenses) }}</span>
+        <span class="text-primary fw-bold">₹ {{ formatNumber(day.income) }}</span>
+        <span class="text-danger fw-bold">₹ {{ formatNumber(day.expenses) }}</span>
       </div>
     </div>
 

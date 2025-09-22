@@ -38,6 +38,16 @@ The project includes two GitHub Actions workflows:
 - **Base Path**: Automatically configured for GitHub Pages (`/expense-logger/`)
 - **Build Output**: `dist/` directory
 - **Dependencies**: Cached for faster builds
+- **SPA Routing**: Configured with 404.html fallback for client-side routing
+
+### SPA Routing on GitHub Pages
+
+This project includes a solution for handling client-side routing on GitHub Pages:
+- **404.html**: Redirects unknown routes back to the main app
+- **index.html**: Contains script to handle redirected routes
+- **Result**: Direct URLs like `/expense-logger/add-transaction` work when refreshed
+
+The implementation uses the [spa-github-pages](https://github.com/rafgraph/spa-github-pages) solution.
 
 ### URLs
 

@@ -1,6 +1,6 @@
 <template>
   <div class="tab-nav">
-    <ul class="nav nav-tabs border-0">
+    <ul class="nav nav-underline">
       <li class="nav-item" v-for="tab in tabs" :key="tab.name">
         <a
           class="nav-link"
@@ -18,3 +18,8 @@
 <script setup lang="ts">
 defineProps<{ tabs: Array<{ name: string, label: string }>, activeTab: string }>()
 </script>
+<style scoped>
+.tab-nav .nav{
+  padding-left: 8px;
+}
+</style>

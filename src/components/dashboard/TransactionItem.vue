@@ -10,7 +10,7 @@
       <div class="payment-method small text-muted">{{ transaction.paymentMethod }}</div>
       <div v-if="transaction.description" class="description small">{{ transaction.description }}</div>
     </div>
-    <div class="amount text-danger fw-bold">
+    <div class="amount text-danger">
       ₹ {{ formatNumber(transaction.amount) }}
     </div>
   </div>
