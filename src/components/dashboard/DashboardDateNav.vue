@@ -7,5 +7,5 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ currentMonth: string }>()
+defineProps<{ currentMonth: string }>()
 </script>

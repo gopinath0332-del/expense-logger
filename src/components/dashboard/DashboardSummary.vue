@@ -24,5 +24,5 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ summary: { income: number, expenses: number, balance: number }, formatCurrency: (n: number) => string }>()
+defineProps<{ summary: { income: number, expenses: number, balance: number }, formatCurrency: (n: number) => string }>()
 </script>

@@ -16,5 +16,5 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ tabs: Array<{ name: string, label: string }>, activeTab: string }>()
+defineProps<{ tabs: Array<{ name: string, label: string }>, activeTab: string }>()
 </script>
