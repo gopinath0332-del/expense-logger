@@ -13,6 +13,11 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
+    },
+    {
+      path: '/add-transaction',
+      name: 'addTransaction',
+      component: () => import('../views/AddTransactionView.vue'),
     }
   ],
 })
