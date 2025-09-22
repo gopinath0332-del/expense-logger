@@ -1,61 +1,9 @@
 <template>
   <div class="dashboard-container">
-    <!-- Header -->
-    <div class="header d-flex justify-content-between align-items-center p-3 bg-light">
-      <i class="bi bi-search fs-5"></i>
-      <h5 class="mb-0 fw-bold">Trans.</h5>
-      <div class="d-flex gap-2">
-        <i class="bi bi-star fs-5"></i>
-        <i class="bi bi-sliders fs-5"></i>
-      </div>
-    </div>
-
-    <!-- Date Navigation -->
-    <div class="date-nav d-flex justify-content-between align-items-center p-3">
-      <i class="bi bi-chevron-left fs-5"></i>
-      <h6 class="mb-0 fw-semibold">{{ currentMonth }}</h6>
-      <i class="bi bi-chevron-right fs-5"></i>
-    </div>
-
-    <!-- Tab Navigation -->
-    <div class="tab-nav">
-      <ul class="nav nav-tabs border-0">
-        <li class="nav-item" v-for="tab in tabs" :key="tab.name">
-          <a 
-            class="nav-link" 
-            :class="{ active: activeTab === tab.name }"
-            @click="activeTab = tab.name"
-            href="#"
-          >
-            {{ tab.label }}
-          </a>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Summary Cards -->
-    <div class="summary-section p-3">
-      <div class="row text-center">
-        <div class="col-4">
-          <div class="summary-card">
-            <div class="text-muted small">Income</div>
-            <div class="fw-bold text-primary">{{ formatCurrency(summary.income) }}</div>
-          </div>
-        </div>
-        <div class="col-4">
-          <div class="summary-card">
-            <div class="text-muted small">Exp.</div>
-            <div class="fw-bold text-danger">{{ formatCurrency(summary.expenses) }}</div>
-          </div>
-        </div>
-        <div class="col-4">
-          <div class="summary-card">
-            <div class="text-muted small">Total</div>
-            <div class="fw-bold">{{ formatCurrency(summary.total) }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <DashboardHeader />
+    <DashboardDateNav :currentMonth="currentMonth" />
+    <DashboardTabs :tabs="tabs" :activeTab="activeTab" @update:activeTab="activeTab = $event" />
+    <DashboardSummary :summary="{ income: summary.income, expenses: summary.expenses, balance: summary.total }" :formatCurrency="formatCurrency" />
 
     <!-- Transaction List -->
     <div class="transaction-list">
@@ -124,6 +72,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
+import DashboardDateNav from '../components/dashboard/DashboardDateNav.vue'
+import DashboardTabs from '../components/dashboard/DashboardTabs.vue'
+import DashboardSummary from '../components/dashboard/DashboardSummary.vue'
 
 // Reactive data
 const activeTab = ref('Daily')
@@ -244,21 +196,21 @@ const transactions = ref([
 
 // Computed properties
 const currentMonth = computed(() => {
-  return currentDate.value.toLocaleDateString('en-US', { 
-    month: 'short', 
-    year: 'numeric' 
+  return currentDate.value.toLocaleDateString('en-US', {
+    month: 'short',
+    year: 'numeric'
   })
 })
 
 const summary = computed(() => {
   let income = 0
   let expenses = 0
-  
+
   transactions.value.forEach(day => {
     income += day.income
     expenses += day.expenses
   })
-  
+
   return {
     income,
     expenses,
@@ -384,15 +336,15 @@ const formatNumber = (amount: number): string => {
   .dashboard-container {
     font-size: 0.9rem;
   }
-  
+
   .transaction-item {
     padding: 0.75rem !important;
   }
-  
+
   .day-header {
     padding: 0.75rem !important;
   }
-  
+
   .tab-nav .nav-link {
     padding: 0.5rem 0.75rem;
     font-size: 0.85rem;
@@ -404,7 +356,7 @@ const formatNumber = (amount: number): string => {
     padding: 0.5rem;
     font-size: 0.8rem;
   }
-  
+
   .summary-section .col-4 {
     padding: 0.25rem;
   }
