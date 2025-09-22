@@ -18,6 +18,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
 import DashboardDateNav from '../components/dashboard/DashboardDateNav.vue'
 import DashboardTabs from '../components/dashboard/DashboardTabs.vue'
@@ -28,6 +29,9 @@ import BottomNavigation from '../components/dashboard/BottomNavigation.vue'
 import { useTransactionData } from '@/composables/useTransactionData'
 import { useFormatting } from '@/composables/useFormatting'
 import type { TabConfig, NavItem } from '@/types/transaction'
+
+// Router
+const router = useRouter()
 
 // Composables
 const { transactions, summary } = useTransactionData()
@@ -81,8 +85,7 @@ const currentMonth = computed(() => {
 
 // Event handlers
 const handleAddTransaction = () => {
-  // TODO: Implement add transaction logic
-  console.log('Add transaction clicked')
+  router.push({ name: 'addTransaction' })
 }
 
 const handleNavClick = (item: NavItem) => {
