@@ -114,6 +114,7 @@
     <CategorySelector
       :isVisible="showCategorySelector"
       :selectedCategory="formData.category"
+      :selectedSubcategory="formData.subcategory"
       :categories="categoryOptions"
       @close="showCategorySelector = false"
       @select="handleCategorySelect"
@@ -154,19 +155,41 @@ const formData = ref({
   date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
   amount: '',
   category: '',
+  subcategory: '',
   account: '',
   note: ''
 })
 
-// Categories based on existing transaction data and screenshot
+// Categories with subcategories based on the screenshot
 const categoryOptions = [
-  { id: 'food', label: 'Food' },
-  { id: 'social-life', label: 'Social Life' },
-  { id: 'self-development', label: 'Self-development' },
-  { id: 'friend', label: 'Friend' },
-  { id: 'fellowship', label: 'Fellowship' },
-  { id: 'alumni', label: 'Alumni' },
-  { id: 'dues', label: 'Dues' },
+  {
+    id: 'food',
+    label: 'Food',
+    subcategories: [
+      { id: 'restaurant', label: 'Restaurant' },
+      { id: 'groceries', label: 'Groceries' },
+      { id: 'fast-food', label: 'Fast Food' },
+      { id: 'beverages', label: 'Beverages' }
+    ]
+  },
+  {
+    id: 'social-life',
+    label: 'Social Life',
+    subcategories: [
+      { id: 'friend', label: 'Friend' },
+      { id: 'fellowship', label: 'Fellowship' },
+      { id: 'alumni', label: 'Alumni' }
+    ]
+  },
+  {
+    id: 'self-development',
+    label: 'Self-development',
+    subcategories: [
+      { id: 'books', label: 'Books' },
+      { id: 'courses', label: 'Courses' },
+      { id: 'workshops', label: 'Workshops' }
+    ]
+  },
   { id: 'transportation', label: 'Transportation' },
   { id: 'culture', label: 'Culture' },
   { id: 'household', label: 'Household' },
@@ -175,6 +198,7 @@ const categoryOptions = [
   { id: 'health', label: 'Health' },
   { id: 'education', label: 'Education' },
   { id: 'gift', label: 'Gift' },
+  { id: 'dues', label: 'Dues' },
   { id: 'other', label: 'Other' }
 ]
 
@@ -190,7 +214,14 @@ const accountOptions = [
 // Computed properties for displaying selected values
 const selectedCategoryLabel = computed(() => {
   const category = categoryOptions.find(cat => cat.id === formData.value.category)
-  return category?.label || ''
+  if (!category) return ''
+
+  if (formData.value.subcategory) {
+    const subcategory = category.subcategories?.find(sub => sub.id === formData.value.subcategory)
+    return subcategory ? `${category.label} > ${subcategory.label}` : category.label
+  }
+
+  return category.label
 })
 
 const selectedAccountLabel = computed(() => {
@@ -203,8 +234,9 @@ const goBack = () => {
   router.back()
 }
 
-const handleCategorySelect = (category: { id: string; label: string }) => {
+const handleCategorySelect = (category: { id: string; label: string }, subcategory?: { id: string; label: string }) => {
   formData.value.category = category.id
+  formData.value.subcategory = subcategory?.id || ''
 }
 
 const handleAccountSelect = (account: { id: string; label: string; icon: string }) => {

@@ -1,7 +1,7 @@
 export interface Transaction {
   id: number
   category: string
-  subcategory: string
+  subcategory?: string
   paymentMethod: string
   description: string
   amount: number
@@ -32,4 +32,15 @@ export interface NavItem {
   icon: string
   label: string
   active: boolean
+}
+
+export interface Subcategory {
+  id: string
+  label: string
+}
+
+export interface Category {
+  id: string
+  label: string
+  subcategories?: Subcategory[]
 }
