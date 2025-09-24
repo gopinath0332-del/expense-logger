@@ -422,18 +422,25 @@ const continueTransaction = () => {
 }
 
 /* Selector field styles */
+
 .selector-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #e9ecef;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.06);
+  border: 1px solid #e9ecef;
   cursor: pointer;
-  min-height: 48px;
+  min-height: 52px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  margin-bottom: 0.5rem;
 }
 
 .selector-field:hover {
-  border-bottom-color: #dc3545;
+  box-shadow: 0 4px 16px rgba(220,53,69,0.10);
+  border-color: #dc3545;
 }
 
 .selector-text {
@@ -443,7 +450,7 @@ const continueTransaction = () => {
 }
 
 .selector-text.placeholder {
-  color: #6c757d;
+  color: white;
 }
 
 .selector-arrow {
