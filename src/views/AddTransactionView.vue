@@ -57,23 +57,23 @@
       <!-- Category Field -->
       <div class="form-group">
         <label class="form-label">Category</label>
-        <select v-model="formData.category" class="form-control">
-          <option value="">Select category</option>
-          <option v-for="category in categories" :key="category" :value="category">
-            {{ category }}
-          </option>
-        </select>
+        <div class="selector-field" @click="showCategorySelector = true">
+          <span class="selector-text" :class="{ placeholder: !selectedCategoryLabel }">
+            {{ selectedCategoryLabel || 'Select category' }}
+          </span>
+          <i class="bi bi-chevron-down selector-arrow"></i>
+        </div>
       </div>
 
       <!-- Account Field -->
       <div class="form-group">
         <label class="form-label">Account</label>
-        <select v-model="formData.account" class="form-control">
-          <option value="">Select account</option>
-          <option v-for="account in accounts" :key="account" :value="account">
-            {{ account }}
-          </option>
-        </select>
+        <div class="selector-field" @click="showAccountSelector = true">
+          <span class="selector-text" :class="{ placeholder: !selectedAccountLabel }">
+            {{ selectedAccountLabel || 'Select account' }}
+          </span>
+          <i class="bi bi-chevron-down selector-arrow"></i>
+        </div>
       </div>
 
       <!-- Note Field -->
@@ -109,12 +109,32 @@
         Continue
       </button>
     </div>
+
+    <!-- Category Selector Modal -->
+    <CategorySelector
+      :isVisible="showCategorySelector"
+      :selectedCategory="formData.category"
+      :categories="categoryOptions"
+      @close="showCategorySelector = false"
+      @select="handleCategorySelect"
+    />
+
+    <!-- Account Selector Modal -->
+    <AccountSelector
+      :isVisible="showAccountSelector"
+      :selectedAccount="formData.account"
+      :accounts="accountOptions"
+      @close="showAccountSelector = false"
+      @select="handleAccountSelect"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import CategorySelector from '@/components/CategorySelector.vue'
+import AccountSelector from '@/components/AccountSelector.vue'
 
 const router = useRouter()
 
@@ -127,6 +147,8 @@ const transactionTabs = [
 
 // Reactive data
 const activeTab = ref('expense') // Default to expense as shown in image
+const showCategorySelector = ref(false)
+const showAccountSelector = ref(false)
 
 const formData = ref({
   date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
@@ -136,31 +158,57 @@ const formData = ref({
   note: ''
 })
 
-// Categories based on existing transaction data
-const categories = [
-  'Food',
-  'Health',
-  'Amazon',
-  'Grocery',
-  'Transport',
-  'Entertainment',
-  'Bills',
-  'Shopping',
-  'Other'
+// Categories based on existing transaction data and screenshot
+const categoryOptions = [
+  { id: 'food', label: 'Food' },
+  { id: 'social-life', label: 'Social Life' },
+  { id: 'self-development', label: 'Self-development' },
+  { id: 'friend', label: 'Friend' },
+  { id: 'fellowship', label: 'Fellowship' },
+  { id: 'alumni', label: 'Alumni' },
+  { id: 'dues', label: 'Dues' },
+  { id: 'transportation', label: 'Transportation' },
+  { id: 'culture', label: 'Culture' },
+  { id: 'household', label: 'Household' },
+  { id: 'apparel', label: 'Apparel' },
+  { id: 'beauty', label: 'Beauty' },
+  { id: 'health', label: 'Health' },
+  { id: 'education', label: 'Education' },
+  { id: 'gift', label: 'Gift' },
+  { id: 'other', label: 'Other' }
 ]
 
-// Sample accounts
-const accounts = [
-  'Cash',
-  'Bank Account',
-  'Credit Card',
-  'UPI',
-  'Wallet'
+// Sample accounts with icons
+const accountOptions = [
+  { id: 'cash', label: 'Cash', icon: 'bi bi-cash' },
+  { id: 'bank', label: 'Bank Account', icon: 'bi bi-bank' },
+  { id: 'credit-card', label: 'Credit Card', icon: 'bi bi-credit-card' },
+  { id: 'upi', label: 'UPI', icon: 'bi bi-phone' },
+  { id: 'wallet', label: 'Wallet', icon: 'bi bi-wallet2' }
 ]
+
+// Computed properties for displaying selected values
+const selectedCategoryLabel = computed(() => {
+  const category = categoryOptions.find(cat => cat.id === formData.value.category)
+  return category?.label || ''
+})
+
+const selectedAccountLabel = computed(() => {
+  const account = accountOptions.find(acc => acc.id === formData.value.account)
+  return account?.label || ''
+})
 
 // Methods
 const goBack = () => {
   router.back()
+}
+
+const handleCategorySelect = (category: { id: string; label: string }) => {
+  formData.value.category = category.id
+}
+
+const handleAccountSelect = (account: { id: string; label: string; icon: string }) => {
+  formData.value.account = account.id
 }
 
 const saveTransaction = () => {
@@ -341,12 +389,47 @@ const continueTransaction = () => {
   color: white;
 }
 
+/* Selector field styles */
+.selector-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.selector-field:hover {
+  border-bottom-color: #dc3545;
+}
+
+.selector-text {
+  flex: 1;
+  color: #212529;
+  font-size: 1rem;
+}
+
+.selector-text.placeholder {
+  color: #6c757d;
+}
+
+.selector-arrow {
+  color: #6c757d;
+  font-size: 0.875rem;
+  transition: transform 0.2s ease;
+}
+
+.selector-field:hover .selector-arrow {
+  color: #dc3545;
+}
+
 /* Responsive adjustments */
 @media (max-width: 576px) {
   .form-container {
     margin-top: 0;
   }
-  
+
   .action-buttons {
     bottom: 1rem;
     left: 0.5rem;
