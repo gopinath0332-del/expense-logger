@@ -26,12 +26,41 @@ export function useTransactionData() {
       ]
     },
     {
+      date: '2025-07-27',
+      dateNumber: 27,
+      dayName: 'Sun',
+      income: 5000,
+      expenses: 0,
+      items: [
+        {
+          id: 9,
+          type: 'income',
+          date: '2025-07-27',
+          category: 'Salary',
+          subcategory: 'Monthly Salary',
+          account: 'Bank Account',
+          description: 'Monthly salary payment',
+          amount: 5000.00
+        }
+      ]
+    },
+    {
       date: '2025-07-25',
       dateNumber: 25,
       dayName: 'Fri',
-      income: 0,
+      income: 500,
       expenses: 2312.80,
       items: [
+        {
+          id: 10,
+          type: 'income',
+          date: '2025-07-25',
+          category: 'Freelance',
+          subcategory: 'Project Payment',
+          account: 'UPI',
+          description: 'Website development project',
+          amount: 500.00
+        },
         {
           id: 2,
           type: 'expense',
@@ -199,8 +228,15 @@ export function useTransactionData() {
     let expenses = 0
 
     transactions.value.forEach(day => {
-      income += day.income
-      expenses += day.expenses
+      day.items.forEach(transaction => {
+        if (transaction.type === 'income') {
+          income += transaction.amount
+        } else if (transaction.type === 'expense') {
+          expenses += transaction.amount
+        }
+        // Note: transfers could be handled separately if needed
+        // For now, we're not including transfers in income/expense totals
+      })
     })
 
     return {

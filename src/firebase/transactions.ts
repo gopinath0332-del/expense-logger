@@ -109,11 +109,14 @@ function processTransactionData(querySnapshot: QuerySnapshot<DocumentData> | Fil
     }
     const dayData = transactionsByDate.get(date)!
     dayData.items.push(transaction)
-    if (transaction.amount > 0) {
+
+    // Calculate totals based on transaction type
+    if (transaction.type === 'income') {
+      dayData.income += transaction.amount
+    } else if (transaction.type === 'expense') {
       dayData.expenses += transaction.amount
-    } else {
-      dayData.income += Math.abs(transaction.amount)
     }
+    // Note: transfers are not included in income/expense totals
   })
 
   return Array.from(transactionsByDate.values())
