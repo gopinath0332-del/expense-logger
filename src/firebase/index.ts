@@ -4,5 +4,11 @@ export {
   fetchTransactions,
   addTransaction,
   updateTransaction,
-  deleteTransaction
+  deleteTransaction,
+  fetchAccountOptions,
+  initializeDefaultAccountOptions,
+  addAccountOption,
+  updateAccountOption,
+  deleteAccountOption,
+  syncDefaultAccountOptions
 } from './database'
