@@ -150,6 +150,7 @@ import { useRouter } from 'vue-router'
 import CategorySelector from '@/components/CategorySelector.vue'
 import AccountSelector from '@/components/AccountSelector.vue'
 import { fetchAccountOptions, fetchCategoryOptions } from '@/firebase'
+import { addTransaction } from '@/firebase/transactions'
 import type { AccountOption } from '@/types/account'
 import type { CategoryOption } from '@/types/category'
 import { getCategoryDisplayLabel } from '@/types/category'
@@ -261,22 +262,110 @@ const refreshCategoryOptions = async () => {
   }
 }
 
-const saveTransaction = () => {
-  // TODO: Implement save logic
-  console.log('Saving transaction:', {
-    type: activeTab.value,
-    ...formData.value
-  })
-  // For now, just go back to dashboard
-  router.push({ name: 'dashboard' })
+const saveTransaction = async () => {
+  // Validate required fields
+  if (!formData.value.amount || parseFloat(formData.value.amount) <= 0) {
+    alert('Please enter a valid amount')
+    return
+  }
+
+  if (!formData.value.category) {
+    alert('Please select a category')
+    return
+  }
+
+  if (!formData.value.account) {
+    alert('Please select an account')
+    return
+  }
+
+  try {
+    // Prepare transaction data
+    const transactionData = {
+      type: activeTab.value as 'income' | 'expense' | 'transfer',
+      date: formData.value.date,
+      category: formData.value.category,
+      subcategory: formData.value.subcategory || '',
+      account: formData.value.account,
+      description: formData.value.description || '',
+      note: formData.value.note || '',
+      amount: parseFloat(formData.value.amount)
+    }
+
+    console.log('Saving transaction:', transactionData)
+
+    // Save to Firebase
+    const transactionId = await addTransaction(transactionData)
+    console.log('Transaction saved successfully with ID:', transactionId)
+
+    // Show success message
+    alert('Transaction saved successfully!')
+
+    // Navigate back to dashboard
+    router.push({ name: 'dashboard' })
+  } catch (error) {
+    console.error('Failed to save transaction:', error)
+    alert('Failed to save transaction. Please try again.')
+  }
 }
 
-const continueTransaction = () => {
-  // TODO: Implement continue logic (might save and continue adding more)
-  console.log('Continue transaction:', {
-    type: activeTab.value,
-    ...formData.value
-  })
+const continueTransaction = async () => {
+  // Validate required fields
+  if (!formData.value.amount || parseFloat(formData.value.amount) <= 0) {
+    alert('Please enter a valid amount')
+    return
+  }
+
+  if (!formData.value.category) {
+    alert('Please select a category')
+    return
+  }
+
+  if (!formData.value.account) {
+    alert('Please select an account')
+    return
+  }
+
+  try {
+    // Prepare transaction data
+    const transactionData = {
+      type: activeTab.value as 'income' | 'expense' | 'transfer',
+      date: formData.value.date,
+      category: formData.value.category,
+      subcategory: formData.value.subcategory || '',
+      account: formData.value.account,
+      description: formData.value.description || '',
+      note: formData.value.note || '',
+      amount: parseFloat(formData.value.amount)
+    }
+
+    console.log('Saving transaction (continue mode):', transactionData)
+
+    // Save to Firebase
+    const transactionId = await addTransaction(transactionData)
+    console.log('Transaction saved successfully with ID:', transactionId)
+
+    // Show success message
+    alert('Transaction saved! Add another transaction.')
+
+    // Reset form but keep category and account for convenience
+    const currentCategory = formData.value.category
+    const currentSubcategory = formData.value.subcategory
+    const currentAccount = formData.value.account
+
+    formData.value = {
+      date: new Date().toISOString().split('T')[0],
+      amount: '',
+      category: currentCategory, // Keep previous category
+      subcategory: currentSubcategory, // Keep previous subcategory
+      account: currentAccount, // Keep previous account
+      note: '',
+      description: ''
+    }
+  } catch (error) {
+    console.error('Failed to save transaction:', error)
+    alert('Failed to save transaction. Please try again.')
+  }
 }
 </script>
 

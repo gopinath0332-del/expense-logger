@@ -7,7 +7,7 @@
       </div>
     </div>
     <div class="payment-description text-center">
-      <div class="payment-method small text-muted">{{ transaction.paymentMethod }}</div>
+      <div class="payment-method small text-muted">{{ transaction.account }}</div>
       <div v-if="transaction.description" class="description small">{{ transaction.description }}</div>
     </div>
     <div class="amount text-danger fw-bold">

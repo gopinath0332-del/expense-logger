@@ -15,9 +15,11 @@ export function useTransactionData() {
       items: [
         {
           id: 1,
+          type: 'expense',
+          date: '2025-07-28',
           category: 'Food',
           subcategory: 'Zomato',
-          paymentMethod: 'UPI',
+          account: 'UPI',
           description: '',
           amount: 1116.81
         }
@@ -32,41 +34,51 @@ export function useTransactionData() {
       items: [
         {
           id: 2,
+          type: 'expense',
+          date: '2025-07-25',
           category: 'Amazon',
           subcategory: '',
-          paymentMethod: 'UPI',
+          account: 'UPI',
           description: '',
           amount: 1204.00
         },
         {
           id: 3,
+          type: 'expense',
+          date: '2025-07-25',
           category: 'Health',
           subcategory: 'Medicine',
-          paymentMethod: 'UPI',
+          account: 'UPI',
           description: 'Shanmuga medical',
           amount: 140.00
         },
         {
           id: 4,
+          type: 'expense',
+          date: '2025-07-25',
           category: 'Food',
           subcategory: 'Beverages',
-          paymentMethod: 'UPI',
+          account: 'UPI',
           description: 'Coke',
           amount: 40.00
         },
         {
           id: 5,
+          type: 'expense',
+          date: '2025-07-25',
           category: 'Food',
           subcategory: 'Zomato',
-          paymentMethod: 'UPI',
+          account: 'UPI',
           description: '',
           amount: 898.80
         },
         {
           id: 6,
+          type: 'expense',
+          date: '2025-07-25',
           category: 'Food',
           subcategory: 'Zomato',
-          paymentMethod: 'UPI',
+          account: 'UPI',
           description: '',
           amount: 30.00
         }
@@ -81,9 +93,11 @@ export function useTransactionData() {
       items: [
         {
           id: 7,
+          type: 'expense',
+          date: '2025-07-23',
           category: 'Grocery',
           subcategory: '',
-          paymentMethod: 'UPI',
+          account: 'UPI',
           description: 'Golden supermarket',
           amount: 58.00
         }
@@ -98,9 +112,11 @@ export function useTransactionData() {
       items: [
         {
           id: 8,
+          type: 'expense',
+          date: '2025-07-22',
           category: 'Other',
           subcategory: '',
-          paymentMethod: 'UPI',
+          account: 'UPI',
           description: '',
           amount: 367.77
         }
@@ -124,7 +140,7 @@ export function useTransactionData() {
     // Fetch from Firebase
     loading.value = true
     error.value = null
-    
+
     try {
       transactions.value = await fetchTransactions()
       console.log('Loaded transactions from Firebase')

@@ -1,9 +1,12 @@
 export interface Transaction {
   id: number
+  type: 'income' | 'expense' | 'transfer'
+  date: string
   category: string
   subcategory?: string
-  paymentMethod: string
+  account: string // Payment method or account
   description: string
+  note?: string
   amount: number
 }
 

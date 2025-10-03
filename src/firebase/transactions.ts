@@ -15,6 +15,19 @@ import type { Transaction, TransactionDay } from '@/types/transaction'
 
 const COLLECTION_NAME = 'transactions'
 
+// Interface for legacy transaction data that might still be in the database
+interface LegacyTransactionData {
+  type?: 'income' | 'expense' | 'transfer'
+  date: string
+  category: string
+  subcategory?: string
+  account?: string
+  paymentMethod?: string // Legacy field name
+  description: string
+  note?: string
+  amount: number
+}
+
 export async function fetchTransactions(): Promise<TransactionDay[]> {
   if (!db) throw new Error('Firebase is not initialized')
   try {
@@ -22,13 +35,16 @@ export async function fetchTransactions(): Promise<TransactionDay[]> {
     const querySnapshot: QuerySnapshot<DocumentData> = await getDocs(q)
     const transactionsByDate = new Map<string, TransactionDay>()
     querySnapshot.forEach((doc) => {
-      const data = doc.data() as Transaction & { date: string }
+      const data = doc.data() as LegacyTransactionData
       const transaction: Transaction = {
         id: Number(doc.id.split('-')[1]) || Math.random(),
+        type: data.type || 'expense',
+        date: data.date,
         category: data.category,
         subcategory: data.subcategory,
-        paymentMethod: data.paymentMethod,
+        account: data.account || data.paymentMethod || '', // Support both new and legacy field names
         description: data.description,
+        note: data.note,
         amount: data.amount
       }
       const date = data.date
