@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container">
     <DashboardHeader />
-    <DashboardDateNav :currentMonth="currentMonth" />
+    <DashboardDateNav :currentMonth="currentMonth" @previousMonth="goToPreviousMonth" @nextMonth="goToNextMonth" />
     <DashboardTabs :tabs="tabs" :activeTab="activeTab" @update:activeTab="activeTab = $event" />
     <DashboardSummary :summary="{ income: summary.income, expenses: summary.expenses, balance: summary.total }" :formatCurrency="formatCurrency" />
 
@@ -96,6 +96,19 @@ const handleNavClick = (item: NavItem) => {
 
   // TODO: Implement navigation logic
   console.log('Navigation clicked:', item.id)
+}
+
+// Month navigation handlers
+const goToPreviousMonth = () => {
+  const newDate = new Date(currentDate.value)
+  newDate.setMonth(newDate.getMonth() - 1)
+  currentDate.value = newDate
+}
+
+const goToNextMonth = () => {
+  const newDate = new Date(currentDate.value)
+  newDate.setMonth(newDate.getMonth() + 1)
+  currentDate.value = newDate
 }
 </script>
 
