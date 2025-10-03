@@ -132,10 +132,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import CategorySelector from '@/components/CategorySelector.vue'
 import AccountSelector from '@/components/AccountSelector.vue'
+import { fetchAccountOptions } from '@/firebase'
+import type { AccountOption } from '@/types/account'
 
 const router = useRouter()
 
@@ -150,6 +152,7 @@ const transactionTabs = [
 const activeTab = ref('expense') // Default to expense as shown in image
 const showCategorySelector = ref(false)
 const showAccountSelector = ref(false)
+const accountOptions = ref<AccountOption[]>([])
 
 const formData = ref({
   date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
@@ -202,14 +205,24 @@ const categoryOptions = [
   { id: 'other', label: 'Other' }
 ]
 
-// Sample accounts with icons
-const accountOptions = [
-  { id: 'cash', label: 'Cash', icon: 'bi bi-cash' },
-  { id: 'bank', label: 'Bank Account', icon: 'bi bi-bank' },
-  { id: 'credit-card', label: 'Credit Card', icon: 'bi bi-credit-card' },
-  { id: 'upi', label: 'UPI', icon: 'bi bi-phone' },
-  { id: 'wallet', label: 'Wallet', icon: 'bi bi-wallet2' }
-]
+// Load account options from Firebase
+onMounted(async () => {
+  try {
+    accountOptions.value = await fetchAccountOptions()
+  } catch (error) {
+    console.error('Failed to load account options:', error)
+    // Fallback to default options if Firebase fails
+    accountOptions.value = [
+      { id: 'cash', label: 'Cash', icon: 'bi bi-cash' },
+      { id: 'bank', label: 'Bank Account', icon: 'bi bi-bank' },
+      { id: 'credit-card', label: 'Credit Card', icon: 'bi bi-credit-card' },
+      { id: 'debit-card', label: 'Debit Cards', icon: 'bi bi-credit-card-2-front' },
+      { id: 'upi', label: 'UPI', icon: 'bi bi-phone' },
+      { id: 'wallet', label: 'Wallet', icon: 'bi bi-wallet2' },
+      { id: 'cash-back', label: 'Cash Back', icon: 'bi bi-arrow-left-circle' }
+    ]
+  }
+})
 
 // Computed properties for displaying selected values
 const selectedCategoryLabel = computed(() => {
@@ -225,7 +238,7 @@ const selectedCategoryLabel = computed(() => {
 })
 
 const selectedAccountLabel = computed(() => {
-  const account = accountOptions.find(acc => acc.id === formData.value.account)
+  const account = accountOptions.value.find(acc => acc.id === formData.value.account)
   return account?.label || ''
 })
 
