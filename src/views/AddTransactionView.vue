@@ -127,6 +127,7 @@
       :accounts="accountOptions"
       @close="showAccountSelector = false"
       @select="handleAccountSelect"
+      @refresh="refreshAccountOptions"
     />
   </div>
 </template>
@@ -229,6 +230,14 @@ const handleCategorySelect = (category: { id: string; label: string }, subcatego
 
 const handleAccountSelect = (account: { id: string; label: string; icon: string }) => {
   formData.value.account = account.id
+}
+
+const refreshAccountOptions = async () => {
+  try {
+    accountOptions.value = await fetchAccountOptions()
+  } catch (error) {
+    console.error('Failed to refresh account options:', error)
+  }
 }
 
 const saveTransaction = () => {
