@@ -118,6 +118,7 @@
       :categories="categoryOptions"
       @close="showCategorySelector = false"
       @select="handleCategorySelect"
+      @refresh="refreshCategoryOptions"
     />
 
     <!-- Account Selector Modal -->
@@ -237,6 +238,14 @@ const refreshAccountOptions = async () => {
     accountOptions.value = await fetchAccountOptions()
   } catch (error) {
     console.error('Failed to refresh account options:', error)
+  }
+}
+
+const refreshCategoryOptions = async () => {
+  try {
+    categoryOptions.value = await fetchCategoryOptions()
+  } catch (error) {
+    console.error('Failed to refresh category options:', error)
   }
 }
 
