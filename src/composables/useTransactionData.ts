@@ -1,7 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import type { TransactionDay, DashboardSummary } from '@/types/transaction'
 import { useSampleData } from '@/firebase/config'
-import { fetchTransactions } from '@/firebase/database'
+import { fetchTransactions, fetchTransactionsByMonth } from '@/firebase/transactions'
 
 export function useTransactionData() {
   // Sample transaction data - used as fallback when Firebase is not configured
@@ -153,6 +153,41 @@ export function useTransactionData() {
     }
   }
 
+  // Load transactions for a specific month
+  const loadTransactionsByMonth = async (year: number, month: number) => {
+    if (useSampleData()) {
+      // Filter sample data by month
+      const filteredSampleData = filterSampleDataByMonth(sampleTransactions, year, month)
+      transactions.value = filteredSampleData
+      console.log(`Using filtered sample transaction data for ${year}-${month}`)
+      return
+    }
+
+    // Fetch from Firebase
+    loading.value = true
+    error.value = null
+
+    try {
+      transactions.value = await fetchTransactionsByMonth(year, month)
+      console.log(`Loaded transactions from Firebase for ${year}-${month}`)
+    } catch (err) {
+      console.error(`Failed to load transactions for ${year}-${month}, falling back to sample data:`, err)
+      error.value = 'Failed to load transactions from Firebase'
+      const filteredSampleData = filterSampleDataByMonth(sampleTransactions, year, month)
+      transactions.value = filteredSampleData
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Helper function to filter sample data by month
+  const filterSampleDataByMonth = (data: TransactionDay[], year: number, month: number): TransactionDay[] => {
+    return data.filter(day => {
+      const dayDate = new Date(day.date)
+      return dayDate.getFullYear() === year && dayDate.getMonth() + 1 === month
+    })
+  }
+
   // Load transactions when component is mounted
   onMounted(() => {
     loadTransactions()
@@ -180,6 +215,7 @@ export function useTransactionData() {
     summary,
     loading,
     error,
-    loadTransactions
+    loadTransactions,
+    loadTransactionsByMonth
   }
 }

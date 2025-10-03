@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
 import DashboardDateNav from '../components/dashboard/DashboardDateNav.vue'
@@ -34,7 +34,7 @@ import type { TabConfig, NavItem } from '@/types/transaction'
 const router = useRouter()
 
 // Composables
-const { transactions, summary } = useTransactionData()
+const { transactions, summary, loadTransactionsByMonth } = useTransactionData()
 const { formatCurrency, formatNumber, formatMonthYear } = useFormatting()
 
 // Reactive data
@@ -110,6 +110,18 @@ const goToNextMonth = () => {
   newDate.setMonth(newDate.getMonth() + 1)
   currentDate.value = newDate
 }
+
+// Load transactions for the current month
+const loadCurrentMonthTransactions = () => {
+  const year = currentDate.value.getFullYear()
+  const month = currentDate.value.getMonth() + 1 // Convert to 1-based month
+  loadTransactionsByMonth(year, month)
+}
+
+// Watch for changes in currentDate and reload transactions
+watch(currentDate, () => {
+  loadCurrentMonthTransactions()
+}, { immediate: true })
 </script>
 
 <style scoped>
