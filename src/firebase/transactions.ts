@@ -7,6 +7,7 @@ import {
   getDocs,
   query,
   orderBy,
+  where,
   type DocumentData,
   type QuerySnapshot,
   type QueryDocumentSnapshot
@@ -53,23 +54,16 @@ export async function fetchTransactionsByMonth(year: number, month: number): Pro
     const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
     const endDate = new Date(year, month, 0).toISOString().split('T')[0] // Last day of the month
 
+    // Use server-side filtering with composite index for efficient queries
     const q = query(
       collection(db, COLLECTION_NAME),
+      where('date', '>=', startDate),
+      where('date', '<=', endDate),
       orderBy('date', 'desc')
-      // Note: Firestore doesn't support >= and <= on the same field without a composite index
-      // For now, we'll fetch all and filter client-side. In production, you'd want to create the index.
     )
     const querySnapshot: QuerySnapshot<DocumentData> = await getDocs(q)
 
-    // Filter client-side for now
-    const filteredDocs = Array.from(querySnapshot.docs).filter(doc => {
-      const data = doc.data()
-      const docDate = data.date
-      return docDate >= startDate && docDate <= endDate
-    })
-
-    // Create a new QuerySnapshot-like object with filtered docs
-    return processTransactionData({ docs: filteredDocs })
+    return processTransactionData(querySnapshot)
   } catch (error) {
     console.error('Error fetching transactions by month:', error)
     throw error

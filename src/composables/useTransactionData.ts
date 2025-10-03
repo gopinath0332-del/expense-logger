@@ -2,6 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import type { TransactionDay, DashboardSummary } from '@/types/transaction'
 import { useSampleData } from '@/firebase/config'
 import { fetchTransactions, fetchTransactionsByMonth } from '@/firebase/transactions'
+import { transactionCache } from '@/services/transactionCache'
 
 export function useTransactionData() {
   // Sample transaction data - used as fallback when Firebase is not configured
@@ -192,13 +193,28 @@ export function useTransactionData() {
       return
     }
 
+    // Check cache first
+    const cachedData = transactionCache.get(year, month)
+    if (cachedData) {
+      transactions.value = cachedData
+      console.log(`Loaded transactions from cache for ${year}-${month}`)
+      // Prefetch adjacent months in the background
+      prefetchAdjacentMonths(year, month)
+      return
+    }
+
     // Fetch from Firebase
     loading.value = true
     error.value = null
 
     try {
-      transactions.value = await fetchTransactionsByMonth(year, month)
+      const data = await fetchTransactionsByMonth(year, month)
+      transactions.value = data
+      // Cache the fetched data
+      transactionCache.set(year, month, data)
       console.log(`Loaded transactions from Firebase for ${year}-${month}`)
+      // Prefetch adjacent months in the background
+      prefetchAdjacentMonths(year, month)
     } catch (err) {
       console.error(`Failed to load transactions for ${year}-${month}, falling back to sample data:`, err)
       error.value = 'Failed to load transactions from Firebase'
@@ -207,6 +223,26 @@ export function useTransactionData() {
     } finally {
       loading.value = false
     }
+  }
+
+  // Prefetch adjacent months for instant navigation
+  const prefetchAdjacentMonths = async (year: number, month: number) => {
+    if (useSampleData()) {
+      return // No need to prefetch for sample data
+    }
+
+    const monthsToPrefetch = transactionCache.getMonthsToPrefetch(year, month)
+
+    // Prefetch in the background without blocking
+    monthsToPrefetch.forEach(async ({ year: prefetchYear, month: prefetchMonth }) => {
+      try {
+        const data = await fetchTransactionsByMonth(prefetchYear, prefetchMonth)
+        transactionCache.set(prefetchYear, prefetchMonth, data)
+        console.log(`Prefetched transactions for ${prefetchYear}-${prefetchMonth}`)
+      } catch (err) {
+        console.error(`Failed to prefetch transactions for ${prefetchYear}-${prefetchMonth}:`, err)
+      }
+    })
   }
 
   // Helper function to filter sample data by month
