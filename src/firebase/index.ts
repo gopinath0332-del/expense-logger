@@ -10,5 +10,11 @@ export {
   addAccountOption,
   updateAccountOption,
   deleteAccountOption,
-  syncDefaultAccountOptions
+  syncDefaultAccountOptions,
+  fetchCategoryOptions,
+  initializeDefaultCategoryOptions,
+  addCategoryOption,
+  updateCategoryOption,
+  deleteCategoryOption,
+  syncDefaultCategoryOptions
 } from './database'

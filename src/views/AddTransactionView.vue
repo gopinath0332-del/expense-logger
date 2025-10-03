@@ -136,8 +136,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import CategorySelector from '@/components/CategorySelector.vue'
 import AccountSelector from '@/components/AccountSelector.vue'
-import { fetchAccountOptions } from '@/firebase'
+import { fetchAccountOptions, fetchCategoryOptions } from '@/firebase'
 import type { AccountOption } from '@/types/account'
+import type { CategoryOption } from '@/types/category'
+import { getCategoryDisplayLabel } from '@/types/category'
 
 const router = useRouter()
 
@@ -153,6 +155,7 @@ const activeTab = ref('expense') // Default to expense as shown in image
 const showCategorySelector = ref(false)
 const showAccountSelector = ref(false)
 const accountOptions = ref<AccountOption[]>([])
+const categoryOptions = ref<CategoryOption[]>([])
 
 const formData = ref({
   date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
@@ -163,54 +166,18 @@ const formData = ref({
   note: ''
 })
 
-// Categories with subcategories based on the screenshot
-const categoryOptions = [
-  {
-    id: 'food',
-    label: 'Food',
-    subcategories: [
-      { id: 'restaurant', label: 'Restaurant' },
-      { id: 'groceries', label: 'Groceries' },
-      { id: 'fast-food', label: 'Fast Food' },
-      { id: 'beverages', label: 'Beverages' }
-    ]
-  },
-  {
-    id: 'social-life',
-    label: 'Social Life',
-    subcategories: [
-      { id: 'friend', label: 'Friend' },
-      { id: 'fellowship', label: 'Fellowship' },
-      { id: 'alumni', label: 'Alumni' }
-    ]
-  },
-  {
-    id: 'self-development',
-    label: 'Self-development',
-    subcategories: [
-      { id: 'books', label: 'Books' },
-      { id: 'courses', label: 'Courses' },
-      { id: 'workshops', label: 'Workshops' }
-    ]
-  },
-  { id: 'transportation', label: 'Transportation' },
-  { id: 'culture', label: 'Culture' },
-  { id: 'household', label: 'Household' },
-  { id: 'apparel', label: 'Apparel' },
-  { id: 'beauty', label: 'Beauty' },
-  { id: 'health', label: 'Health' },
-  { id: 'education', label: 'Education' },
-  { id: 'gift', label: 'Gift' },
-  { id: 'dues', label: 'Dues' },
-  { id: 'other', label: 'Other' }
-]
-
-// Load account options from Firebase
+// Load account and category options from Firebase
 onMounted(async () => {
   try {
-    accountOptions.value = await fetchAccountOptions()
+    // Load both account and category options in parallel
+    const [accounts, categories] = await Promise.all([
+      fetchAccountOptions(),
+      fetchCategoryOptions()
+    ])
+    accountOptions.value = accounts
+    categoryOptions.value = categories
   } catch (error) {
-    console.error('Failed to load account options:', error)
+    console.error('Failed to load options:', error)
     // Fallback to default options if Firebase fails
     accountOptions.value = [
       { id: 'cash', label: 'Cash', icon: 'bi bi-cash' },
@@ -221,20 +188,28 @@ onMounted(async () => {
       { id: 'wallet', label: 'Wallet', icon: 'bi bi-wallet2' },
       { id: 'cash-back', label: 'Cash Back', icon: 'bi bi-arrow-left-circle' }
     ]
+    categoryOptions.value = [
+      {
+        id: 'food',
+        label: 'Food',
+        subcategories: [
+          { id: 'restaurant', label: 'Restaurant' },
+          { id: 'groceries', label: 'Groceries' }
+        ]
+      },
+      { id: 'transportation', label: 'Transportation' },
+      { id: 'other', label: 'Other' }
+    ]
   }
 })
 
 // Computed properties for displaying selected values
 const selectedCategoryLabel = computed(() => {
-  const category = categoryOptions.find(cat => cat.id === formData.value.category)
-  if (!category) return ''
-
-  if (formData.value.subcategory) {
-    const subcategory = category.subcategories?.find(sub => sub.id === formData.value.subcategory)
-    return subcategory ? `${category.label} > ${subcategory.label}` : category.label
-  }
-
-  return category.label
+  return getCategoryDisplayLabel(
+    categoryOptions.value,
+    formData.value.category,
+    formData.value.subcategory
+  )
 })
 
 const selectedAccountLabel = computed(() => {
