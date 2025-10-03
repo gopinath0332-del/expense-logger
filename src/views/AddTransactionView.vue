@@ -92,6 +92,17 @@
         </div>
       </div>
 
+      <!-- Description Field -->
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea
+          v-model="formData.description"
+          class="form-control"
+          rows="3"
+          placeholder="Add a description..."
+        ></textarea>
+      </div>
+
       <!-- Attachment -->
       <div class="attachment-section">
         <button class="btn btn-link attachment-btn">
@@ -165,7 +176,8 @@ const formData = ref({
   category: '',
   subcategory: '',
   account: '',
-  note: ''
+  note: '',
+  description: ''
 })
 
 // Load account and category options from Firebase
@@ -347,6 +359,19 @@ const continueTransaction = () => {
 
 .form-control:focus {
   outline: none;
+  border-bottom-color: #dc3545;
+}
+
+.form-control[rows] {
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-control[rows]:focus {
+  border-color: #dc3545;
   border-bottom-color: #dc3545;
 }
 
