@@ -33,7 +33,7 @@ describe('CategorySelector', () => {
     })
 
     expect(wrapper.find('.modal-title').text()).toBe('Category')
-    expect(wrapper.findAll('.category-item')).toHaveLength(2) // 2 category items
+    expect(wrapper.findAll('.category-btn:not(.add-new-btn)')).toHaveLength(2) // 2 category items
     expect(wrapper.findAll('.add-new-btn')).toHaveLength(1) // 1 add new button
   })
 
@@ -145,10 +145,8 @@ describe('CategorySelector', () => {
     // Open add category form
     await wrapper.find('.add-new-btn').trigger('click')
 
-    // Try to save without name
-    await wrapper.find('.btn-primary').trigger('click')
-
-    expect(wrapper.find('.error-message').text()).toBe('Category name is required')
+    // Submit button should be disabled when name is empty
+    expect((wrapper.find('.btn-primary').element as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('should validate subcategory name input', async () => {
@@ -166,10 +164,8 @@ describe('CategorySelector', () => {
     // Open add subcategory form
     await wrapper.find('.add-new-btn').trigger('click')
 
-    // Try to save without name
-    await wrapper.find('.btn-primary').trigger('click')
-
-    expect(wrapper.find('.error-message').text()).toBe('Subcategory name is required')
+    // Submit button should be disabled when name is empty
+    expect((wrapper.find('.btn-primary').element as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('should detect duplicate subcategory names', async () => {
@@ -239,7 +235,7 @@ describe('CategorySelector', () => {
     expect(wrapper.emitted('select')).toBeTruthy()
   })
 
-  it('should show add subcategory button for categories without subcategories', () => {
+  it('should show add subcategory button in manage mode', async () => {
     const wrapper = mount(CategorySelector, {
       props: {
         isVisible: true,
@@ -247,26 +243,13 @@ describe('CategorySelector', () => {
       }
     })
 
-    // Transportation category (index 1) has no subcategories, should show add button
-    const categoryItems = wrapper.findAll('.category-item')
+    // Switch to manage mode
+    await wrapper.findAll('.mode-btn')[1].trigger('click')
+
+    const categoryItems = wrapper.findAll('.category-manage-item')
     const transportationItem = categoryItems[1]
 
-    expect(transportationItem.find('.add-subcategory-to-category-btn').exists()).toBe(true)
-  })
-
-  it('should not show add subcategory button for categories with subcategories', () => {
-    const wrapper = mount(CategorySelector, {
-      props: {
-        isVisible: true,
-        categories: mockCategories
-      }
-    })
-
-    // Food category (index 0) has subcategories, should not show add button
-    const categoryItems = wrapper.findAll('.category-item')
-    const foodItem = categoryItems[0]
-
-    expect(foodItem.find('.add-subcategory-to-category-btn').exists()).toBe(false)
+    expect(transportationItem.find('.add-sub-btn').exists()).toBe(true)
   })
 
   it('should open subcategory form when add subcategory button is clicked', async () => {
@@ -277,10 +260,13 @@ describe('CategorySelector', () => {
       }
     })
 
+    // Switch to manage mode
+    await wrapper.findAll('.mode-btn')[1].trigger('click')
+
     // Click the add subcategory button for Transportation category
-    const categoryItems = wrapper.findAll('.category-item')
+    const categoryItems = wrapper.findAll('.category-manage-item')
     const transportationItem = categoryItems[1]
-    await transportationItem.find('.add-subcategory-to-category-btn').trigger('click')
+    await transportationItem.find('.add-sub-btn').trigger('click')
 
     expect(wrapper.find('.add-subcategory-form').exists()).toBe(true)
     expect(wrapper.find('.modal-title').text()).toBe('Add Subcategory to Transportation')

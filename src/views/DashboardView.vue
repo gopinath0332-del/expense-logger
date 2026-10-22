@@ -94,8 +94,9 @@ const handleNavClick = (item: NavItem) => {
     navItem.active = navItem.id === item.id
   })
 
-  // TODO: Implement navigation logic
-  console.log('Navigation clicked:', item.id)
+  if (item.id === 'more') {
+    router.push({ name: 'importPdf' })
+  }
 }
 
 // Month navigation handlers

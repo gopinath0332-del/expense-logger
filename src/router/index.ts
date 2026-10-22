@@ -18,6 +18,11 @@ const router = createRouter({
       path: '/add-transaction',
       name: 'addTransaction',
       component: () => import('../views/AddTransactionView.vue'),
+    },
+    {
+      path: '/import-pdf',
+      name: 'importPdf',
+      component: () => import('../views/ImportPdfView.vue'),
     }
   ],
 })

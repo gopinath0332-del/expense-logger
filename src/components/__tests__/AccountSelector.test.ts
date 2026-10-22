@@ -78,10 +78,8 @@ describe('AccountSelector', () => {
     // Open add form
     await wrapper.find('.add-new-btn').trigger('click')
 
-    // Try to save without name
-    await wrapper.find('.btn-primary').trigger('click')
-
-    expect(wrapper.find('.error-message').text()).toBe('Account name is required')
+    // Submit button should be disabled when name is empty
+    expect((wrapper.find('.btn-primary').element as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('should allow icon selection', async () => {
