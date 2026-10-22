@@ -82,6 +82,35 @@ describe('AxisBankParser', () => {
       const result = parser.detectCategory('UNKNOWN VENDOR TRANSACTION', mockCategories)
       expect(result.categoryId).toBe('other')
     })
+
+    it('dynamically matches user custom category by label (e.g. Zerodha)', () => {
+      const customCategories: CategoryOption[] = [
+        ...mockCategories,
+        { id: 'zerodha-stocks', label: 'Zerodha' }
+      ]
+      const result = parser.detectCategory(
+        'UPI/P2M/103710264418/ZERODHA BROKING LIMIT/405330/HDFC BANK LTD',
+        customCategories
+      )
+      expect(result.categoryId).toBe('zerodha-stocks')
+    })
+
+    it('dynamically matches user custom subcategory by label (e.g. Zerodha under Investment)', () => {
+      const customCategories: CategoryOption[] = [
+        ...mockCategories,
+        {
+          id: 'investment',
+          label: 'Investment',
+          subcategories: [{ id: 'zerodha', label: 'Zerodha' }]
+        }
+      ]
+      const result = parser.detectCategory(
+        'UPI/P2M/103710264418/ZERODHA BROKING LIMIT/405330/HDFC BANK LTD',
+        customCategories
+      )
+      expect(result.categoryId).toBe('investment')
+      expect(result.subcategoryId).toBe('zerodha')
+    })
   })
 
   describe('detectAccount', () => {

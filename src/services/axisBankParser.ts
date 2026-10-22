@@ -38,7 +38,29 @@ export const CATEGORY_KEYWORD_RULES: CategoryKeywordRule[] = [
     subcategoryId: 'beverages'
   },
   {
-    keywords: ['petrol', 'fuel', 'indian oil', 'indianoil', 'hpcl', 'bpcl', 'shell', 'uber', 'ola', 'rapido', 'irctc', 'redbus', 'toll', 'fastag', 'parking'],
+    keywords: [
+      'petro',
+      'petrol',
+      'fuel',
+      'diesel',
+      'hsd',
+      'cng',
+      'indian oil',
+      'indianoil',
+      'hpcl',
+      'bpcl',
+      'shell',
+      'iocl',
+      'bharat petroleum',
+      'hindustan petroleum',
+      'gas station',
+      'petroleum'
+    ],
+    categoryId: 'transportation',
+    subcategoryId: 'fuel'
+  },
+  {
+    keywords: ['uber', 'ola', 'rapido', 'irctc', 'redbus', 'toll', 'fastag', 'parking', 'metro', 'taxi', 'cab', 'auto'],
     categoryId: 'transportation'
   },
   {
@@ -68,6 +90,10 @@ export const CATEGORY_KEYWORD_RULES: CategoryKeywordRule[] = [
   {
     keywords: ['amazon', 'flipkart', 'meesho', 'purchase', 'shopping'],
     categoryId: 'other'
+  },
+  {
+    keywords: ['zerodha', 'groww', 'upstox', 'angelone', 'angel one', 'kite', 'sharekhan', 'motilal', 'mutual fund', 'investment', 'stocks'],
+    categoryId: 'investment'
   }
 ]
 
@@ -267,6 +293,16 @@ export class AxisBankParser {
   }
 
   /**
+   * Helper to check word match in text (handles punctuation, slashes, boundaries)
+   */
+  private matchWord(text: string, term: string): boolean {
+    if (!term || term.length < 3) return false
+    const escaped = term.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const regex = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, 'i')
+    return regex.test(text)
+  }
+
+  /**
    * Detect category & subcategory from narration
    */
   detectCategory(
@@ -275,20 +311,47 @@ export class AxisBankParser {
   ): { categoryId: string; subcategoryId?: string } {
     const lower = narration.toLowerCase()
 
+    // 1. Dynamic Matching against User's Category List:
+    // First, check if narration matches any subcategory label or id
+    for (const cat of categories) {
+      if (!cat.subcategories) continue
+      for (const sub of cat.subcategories) {
+        if (this.matchWord(lower, sub.label) || this.matchWord(lower, sub.id)) {
+          return { categoryId: cat.id, subcategoryId: sub.id }
+        }
+      }
+    }
+
+    // Second, check if narration matches any main category label or id (skip generic 'other')
+    for (const cat of categories) {
+      if (cat.id === 'other' || cat.label.toLowerCase() === 'other') continue
+      if (this.matchWord(lower, cat.label) || this.matchWord(lower, cat.id)) {
+        return { categoryId: cat.id }
+      }
+    }
+
+    // 2. Pre-configured Keyword Rules:
     for (const rule of CATEGORY_KEYWORD_RULES) {
       const matched = rule.keywords.some((keyword) => lower.includes(keyword))
       if (matched) {
         const cat = categories.find((c) => c.id === rule.categoryId)
         if (cat) {
-          if (rule.subcategoryId && cat.subcategories?.some((s) => s.id === rule.subcategoryId)) {
-            return { categoryId: cat.id, subcategoryId: rule.subcategoryId }
+          if (rule.subcategoryId) {
+            const sub = cat.subcategories?.find(
+              (s) =>
+                s.id.toLowerCase() === rule.subcategoryId?.toLowerCase() ||
+                s.label.toLowerCase() === rule.subcategoryId?.toLowerCase()
+            )
+            if (sub) {
+              return { categoryId: cat.id, subcategoryId: sub.id }
+            }
           }
           return { categoryId: cat.id }
         }
       }
     }
 
-    // Fallback: search for 'other'
+    // 3. Fallback: search for 'other'
     const otherCat = categories.find((c) => c.id === 'other')
     if (otherCat) {
       return { categoryId: otherCat.id }
