@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import type { ImportedTransaction, ImportStep, ImportProgress } from '@/types/pdfImport'
 import type { CategoryOption } from '@/types/category'
 import type { AccountOption } from '@/types/account'
+import type { Transaction } from '@/types/transaction'
 import { AxisBankParser } from '@/services/axisBankParser'
 import { addTransaction, fetchTransactions } from '@/firebase/transactions'
 import { fetchAccountOptions, fetchCategoryOptions } from '@/firebase'
@@ -82,19 +83,14 @@ export function usePdfImport() {
       // Read array buffer
       const buffer = await file.arrayBuffer()
 
-      // Fetch existing transactions to detect duplicates
-      const existingFingerprints = new Set<string>()
+      // Fetch existing transactions for duplicate detection and historical auto-learning
+      let existingTransactions: Transaction[] = []
       if (!useSampleData()) {
         try {
           const existingDays = await fetchTransactions()
-          for (const day of existingDays) {
-            for (const item of day.items) {
-              const fp = `${item.date}_${item.amount}_${item.type}_${(item.description || '').toLowerCase()}`
-              existingFingerprints.add(fp)
-            }
-          }
+          existingTransactions = existingDays.flatMap((day) => day.items)
         } catch (fetchErr) {
-          console.warn('Could not fetch existing transactions for duplicate detection:', fetchErr)
+          console.warn('Could not fetch existing transactions for auto-learning:', fetchErr)
         }
       }
 
@@ -105,12 +101,12 @@ export function usePdfImport() {
         throw new Error('No transactions found in this PDF. Please ensure this is a valid Axis Bank statement.')
       }
 
-      // Map to imported transactions with duplicate detection
+      // Map to imported transactions with auto-learning & duplicate detection
       const mapped = parser.mapToImportedTransactions(
         rawRows,
         categories.value,
         accounts.value,
-        existingFingerprints
+        existingTransactions
       )
 
       transactions.value = mapped

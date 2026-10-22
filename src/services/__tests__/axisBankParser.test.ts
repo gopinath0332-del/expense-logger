@@ -111,6 +111,35 @@ describe('AxisBankParser', () => {
       expect(result.categoryId).toBe('investment')
       expect(result.subcategoryId).toBe('zerodha')
     })
+
+    it('learns and auto-categorizes from historical past transactions', () => {
+      const pastTransactions = [
+        {
+          date: '2026-06-15',
+          description: 'MS HSD MS PADMA PETRO',
+          category: 'transportation',
+          subcategory: 'fuel',
+          account: 'upi'
+        }
+      ]
+      const memory = parser.buildHistoricalMemory(pastTransactions)
+
+      const result = parser.detectCategory(
+        'UPI/P2M/750445210181/MS HSD MS PADMA PETRO/Paymen/YES BANK LIMITED YBS',
+        [
+          ...mockCategories.filter((c) => c.id !== 'transportation'),
+          {
+            id: 'transportation',
+            label: 'Transportation',
+            subcategories: [{ id: 'fuel', label: 'Fuel' }]
+          }
+        ],
+        memory
+      )
+
+      expect(result.categoryId).toBe('transportation')
+      expect(result.subcategoryId).toBe('fuel')
+    })
   })
 
   describe('detectAccount', () => {

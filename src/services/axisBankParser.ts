@@ -97,6 +97,23 @@ export const CATEGORY_KEYWORD_RULES: CategoryKeywordRule[] = [
   }
 ]
 
+export interface HistoricalMerchantMapping {
+  categoryId: string
+  subcategoryId?: string
+  accountId?: string
+}
+
+export interface PastTransactionRecord {
+  date: string
+  description?: string
+  note?: string
+  category: string
+  subcategory?: string
+  account?: string
+  amount?: number
+  type?: string
+}
+
 export class AxisBankParser {
   /**
    * Extract text items from all pages of an ArrayBuffer
@@ -293,6 +310,46 @@ export class AxisBankParser {
   }
 
   /**
+   * Build historical merchant mapping memory from previous transactions
+   */
+  buildHistoricalMemory(
+    pastTransactions: PastTransactionRecord[]
+  ): Map<string, HistoricalMerchantMapping> {
+    const memory = new Map<string, HistoricalMerchantMapping>()
+
+    // Sort newest first so most recent categorization takes priority
+    const sorted = [...pastTransactions].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+
+    for (const tx of sorted) {
+      if (!tx.category) continue
+
+      const mapping: HistoricalMerchantMapping = {
+        categoryId: tx.category,
+        subcategoryId: tx.subcategory || undefined,
+        accountId: tx.account || undefined
+      }
+
+      // 1. Map normalized description
+      if (tx.description && tx.description.trim().length >= 3) {
+        const key = tx.description.trim().toLowerCase()
+        if (!memory.has(key)) {
+          memory.set(key, mapping)
+        }
+      }
+
+      // 2. If note contains UPI or bank narration, extract cleaned merchant name
+      if (tx.note && tx.note.trim().length >= 3) {
+        const cleanFromNote = this.cleanDescription(tx.note).toLowerCase()
+        if (cleanFromNote.length >= 3 && !memory.has(cleanFromNote)) {
+          memory.set(cleanFromNote, mapping)
+        }
+      }
+    }
+
+    return memory
+  }
+
+  /**
    * Helper to check word match in text (handles punctuation, slashes, boundaries)
    */
   private matchWord(text: string, term: string): boolean {
@@ -303,15 +360,67 @@ export class AxisBankParser {
   }
 
   /**
-   * Detect category & subcategory from narration
+   * Detect category & subcategory from narration, checking:
+   * 1. Historical merchant memory (learned from past transactions)
+   * 2. User category and subcategory names & IDs
+   * 3. Seed baseline rules
+   * 4. Fallback to 'other'
    */
   detectCategory(
     narration: string,
-    categories: CategoryOption[]
+    categories: CategoryOption[],
+    historicalMemory?: Map<string, HistoricalMerchantMapping>
   ): { categoryId: string; subcategoryId?: string } {
     const lower = narration.toLowerCase()
+    const cleanedDesc = this.cleanDescription(narration).toLowerCase()
 
-    // 1. Dynamic Matching against User's Category List:
+    // 1. History-Based Auto-Learning (Past Transactions Memory):
+    if (historicalMemory && historicalMemory.size > 0) {
+      // 1a. Direct exact match on cleaned description
+      if (historicalMemory.has(cleanedDesc)) {
+        const match = historicalMemory.get(cleanedDesc)!
+        const cat = categories.find((c) => c.id === match.categoryId)
+        if (cat) {
+          if (match.subcategoryId) {
+            const sub = cat.subcategories?.find(
+              (s) =>
+                s.id.toLowerCase() === match.subcategoryId?.toLowerCase() ||
+                s.label.toLowerCase() === match.subcategoryId?.toLowerCase()
+            )
+            if (sub) {
+              return { categoryId: cat.id, subcategoryId: sub.id }
+            }
+          }
+          return { categoryId: cat.id }
+        }
+      }
+
+      // 1b. Partial or word match against known past merchants
+      for (const [merchantKey, match] of historicalMemory.entries()) {
+        if (
+          this.matchWord(lower, merchantKey) ||
+          lower.includes(merchantKey) ||
+          cleanedDesc.includes(merchantKey)
+        ) {
+          const cat = categories.find((c) => c.id === match.categoryId)
+          if (cat) {
+            if (match.subcategoryId) {
+              const sub = cat.subcategories?.find(
+                (s) =>
+                  s.id.toLowerCase() === match.subcategoryId?.toLowerCase() ||
+                  s.label.toLowerCase() === match.subcategoryId?.toLowerCase()
+              )
+              if (sub) {
+                return { categoryId: cat.id, subcategoryId: sub.id }
+              }
+            }
+            return { categoryId: cat.id }
+          }
+        }
+      }
+    }
+
+    // 2. Dynamic Matching against User's Category List:
     // First, check if narration matches any subcategory label or id
     for (const cat of categories) {
       if (!cat.subcategories) continue
@@ -330,7 +439,7 @@ export class AxisBankParser {
       }
     }
 
-    // 2. Pre-configured Keyword Rules:
+    // 3. Pre-configured Keyword Rules (Baseline):
     for (const rule of CATEGORY_KEYWORD_RULES) {
       const matched = rule.keywords.some((keyword) => lower.includes(keyword))
       if (matched) {
@@ -351,7 +460,7 @@ export class AxisBankParser {
       }
     }
 
-    // 3. Fallback: search for 'other'
+    // 4. Fallback: search for 'other'
     const otherCat = categories.find((c) => c.id === 'other')
     if (otherCat) {
       return { categoryId: otherCat.id }
@@ -362,11 +471,31 @@ export class AxisBankParser {
   }
 
   /**
-   * Detect payment account from narration
+   * Detect payment account from narration, checking past transactions memory first
    */
-  detectAccount(narration: string, accounts: AccountOption[]): string {
+  detectAccount(
+    narration: string,
+    accounts: AccountOption[],
+    historicalMemory?: Map<string, HistoricalMerchantMapping>
+  ): string {
     const lower = narration.toLowerCase()
+    const cleanedDesc = this.cleanDescription(narration).toLowerCase()
 
+    // 1. Check historical memory
+    if (historicalMemory && historicalMemory.size > 0) {
+      const histMatch =
+        historicalMemory.get(cleanedDesc) ||
+        Array.from(historicalMemory.entries()).find(
+          ([key]) => lower.includes(key) || cleanedDesc.includes(key)
+        )?.[1]
+
+      if (histMatch?.accountId) {
+        const acc = accounts.find((a) => a.id === histMatch.accountId)
+        if (acc) return acc.id
+      }
+    }
+
+    // 2. UPI vs Bank heuristics
     if (lower.startsWith('upi') || lower.includes('upi')) {
       const upiAcc = accounts.find((a) => a.id === 'upi')
       if (upiAcc) return upiAcc.id
@@ -383,14 +512,32 @@ export class AxisBankParser {
   }
 
   /**
-   * Map raw rows into ImportedTransaction objects ready for user review
+   * Map raw rows into ImportedTransaction objects ready for user review.
+   * Leverages pastTransactions for both auto-categorization and duplicate detection.
    */
   mapToImportedTransactions(
     rawRows: RawBankRow[],
     categories: CategoryOption[],
     accounts: AccountOption[],
-    existingFingerprints: Set<string> = new Set()
+    pastTransactionsOrFingerprints: PastTransactionRecord[] | Set<string> = []
   ): ImportedTransaction[] {
+    let existingFingerprints: Set<string>
+    let historicalMemory: Map<string, HistoricalMerchantMapping>
+
+    if (Array.isArray(pastTransactionsOrFingerprints)) {
+      historicalMemory = this.buildHistoricalMemory(pastTransactionsOrFingerprints)
+      existingFingerprints = new Set(
+        pastTransactionsOrFingerprints.map((tx) => {
+          const type = tx.type || 'expense'
+          const desc = (tx.description || '').toLowerCase()
+          return `${tx.date}_${tx.amount}_${type}_${desc}`
+        })
+      )
+    } else {
+      existingFingerprints = pastTransactionsOrFingerprints
+      historicalMemory = new Map()
+    }
+
     // Only capture expense/debit rows
     const debitRows = rawRows.filter((row) => row.debit !== null && row.debit > 0)
 
@@ -400,8 +547,12 @@ export class AxisBankParser {
       const formattedDate = this.parseDate(row.date)
       const description = this.cleanDescription(row.narration)
 
-      const { categoryId, subcategoryId } = this.detectCategory(row.narration, categories)
-      const accountId = this.detectAccount(row.narration, accounts)
+      const { categoryId, subcategoryId } = this.detectCategory(
+        row.narration,
+        categories,
+        historicalMemory
+      )
+      const accountId = this.detectAccount(row.narration, accounts, historicalMemory)
 
       // Duplicate fingerprint: date_amount_type_description
       const fingerprint = `${formattedDate}_${amount}_${type}_${description.toLowerCase()}`
