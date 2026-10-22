@@ -1,152 +1,217 @@
-# Expense Logger
+# Expense Logger — GitHub Copilot Instructions
 
-Expense Logger is a Vue.js 3 application for tracking and managing expenses, built with Vite, TypeScript, Vue Router, and Pinia for state management.
+Expense Logger is a **mobile-first Vue 3 + TypeScript + Firebase Firestore** single-page app for personal finance tracking.
 
-**ALWAYS reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.**
+**ALWAYS reference this file first. Fall back to shell commands or search only for unexpected information not described here.**
 
-## Working Effectively
+See also `AGENTS.md` at the repo root for the full authoritative context.
 
-### Bootstrap, build, and test the repository:
-- **CRITICAL**: Node.js version requirement: `^20.19.0 || >=22.12.0` (current: v20.19.5 ✓)
-- `npm install` -- takes ~15 seconds. Install all dependencies.
-- `npm run type-check` -- takes ~3 seconds. Run TypeScript type checking.
-- `npm run build` -- takes ~4 seconds. Build for production (runs type-check + vite build in parallel).
-- `npm run test:unit` -- takes ~2 seconds. Run Vitest unit tests.
-- `npm run lint` -- takes ~2 seconds. Run ESLint with auto-fix.
-- `npm run format` -- takes ~1 second. Format code with Prettier.
+---
 
-### Run the application:
-- **Development server**: `npm run dev` -- starts Vite dev server on http://localhost:5173/
-- **Production preview**: `npm run preview` -- serves production build on http://localhost:4173/ (must run `npm run build` first)
+## Quick Commands
 
-### End-to-End Testing:
-- **IMPORTANT**: E2E tests require Playwright browsers: `npx playwright install`
-- Browser installation may fail in sandboxed environments -- document this as a known limitation
-- `npm run test:e2e` -- runs Playwright tests (requires browsers installed and app built)
-- Tests are configured to run on Chromium, Firefox, and WebKit
+| Command | Purpose | Duration |
+|---------|---------|---------|
+| `npm install` | Install all dependencies | ~15 s |
+| `npm run dev` | Vite dev server on http://localhost:5173/ | live |
+| `npm run type-check` | TypeScript type check | ~3 s |
+| `npm run build` | Production build (type-check + vite in parallel) | ~4 s |
+| `npm run test:unit` | Vitest unit tests | ~2 s |
+| `npm run lint` | ESLint with auto-fix | ~2 s |
+| `npm run format` | Prettier over `src/` | ~1 s |
+| `npm run test:e2e` | Playwright E2E (browsers must be installed) | varies |
 
-## Validation
+**Node.js:** `^20.19.0 || >=22.12.0`
 
-### ALWAYS run complete validation after making changes:
-1. **Build validation**: `npm run build` (includes type-checking)
-2. **Unit tests**: `npm run test:unit`
-3. **Linting**: `npm run lint`
-4. **Manual testing scenarios**:
-   - Start dev server: `npm run dev`
-   - Navigate to http://localhost:5173/
-   - Test navigation: Home ↔ About pages
-   - Verify Vue Router navigation works correctly
-   - Check that the "You did it!" heading displays
-   - Test production build: `npm run build && npm run preview`
-   - Navigate to http://localhost:4173/ and repeat above tests
+**After every change:** `npm run build && npm run test:unit && npm run lint`
 
-### NEVER CANCEL any builds or tests:
-- All commands complete quickly (under 30 seconds)
-- If commands appear to hang, wait at least 60 seconds before investigating
+---
 
-## Key Architecture
+## Validation Steps
 
-### Project Structure:
+1. `npm run build` — catches TypeScript and bundling errors
+2. `npm run test:unit` — unit tests
+3. `npm run lint` — linting
+4. Dev server: `npm run dev` → http://localhost:5173/
+5. Production preview: `npm run build && npm run preview` → http://localhost:4173/
+
+**Never cancel a build or test — all complete in under 30 s.**
+
+---
+
+## Project Structure
+
 ```
-├── src/
-│   ├── components/          # Vue components
-│   │   ├── __tests__/       # Component unit tests
-│   │   ├── HelloWorld.vue   # Main greeting component
-│   │   ├── TheWelcome.vue   # Welcome page content
-│   │   └── icons/          # SVG icon components
-│   ├── views/              # Route-level components
-│   │   ├── HomeView.vue    # Home page (uses TheWelcome)
-│   │   └── AboutView.vue   # About page
-│   ├── router/             # Vue Router configuration
-│   ├── stores/             # Pinia stores
-│   │   └── counter.ts      # Example counter store
-│   ├── assets/             # Static assets (CSS, images)
-│   └── main.ts             # Application entry point
-├── e2e/                    # Playwright end-to-end tests
-├── public/                 # Static public assets
-└── dist/                   # Production build output (generated)
+src/
+├── main.ts                    # Entry point
+├── App.vue                    # Minimal router-view root
+├── router/index.ts            # Routes: /, /dashboard, /add-transaction
+├── views/
+│   ├── DashboardView.vue      # Main dashboard (composes dashboard/* components)
+│   └── AddTransactionView.vue # Add income/expense/transfer form (lazy-loaded)
+├── components/
+│   ├── dashboard/             # DashboardHeader, DateNav, Tabs, Summary,
+│   │                          # TransactionList, TransactionDayGroup, TransactionItem,
+│   │                          # FloatingActionButton, BottomNavigation
+│   ├── CategorySelector.vue   # Full-screen modal — category + subcategory picker
+│   └── AccountSelector.vue    # Full-screen modal — account/payment method picker
+├── composables/
+│   ├── useTransactionData.ts  # Transaction loading, caching, fallback to sample data
+│   └── useFormatting.ts       # formatCurrency / formatNumber / formatMonthYear
+├── firebase/
+│   ├── config.ts              # Firebase init; isFirebaseConfigured(); useSampleData()
+│   ├── index.ts               # Re-exports: fetchAccountOptions, fetchCategoryOptions
+│   ├── transactions.ts        # CRUD: fetchTransactions, fetchTransactionsByMonth,
+│   │                          #       addTransaction, updateTransaction, deleteTransaction
+│   ├── categories.ts          # CRUD + auto-sync for categories collection
+│   ├── accounts.ts            # CRUD + auto-sync for accounts collection
+│   └── database.ts            # Firestore db export
+├── services/
+│   └── transactionCache.ts    # In-memory month-keyed cache; pre-fetches adjacent months
+└── types/
+    ├── transaction.ts         # Transaction, TransactionDay, DashboardSummary, TabConfig, NavItem
+    ├── category.ts            # Category, CategoryOption, defaults, helper functions
+    └── account.ts             # Account, AccountOption, defaults
 ```
 
-### Key Technologies:
-- **Vite**: Build tool and dev server
-- **Vue 3**: Framework with Composition API
-- **TypeScript**: Full type safety
-- **Vue Router**: Client-side routing
-- **Pinia**: State management (Composition API style)
-- **Vitest**: Unit testing with jsdom environment
-- **Playwright**: End-to-end testing
-- **ESLint**: Code linting with Vue, TypeScript, Vitest, and Playwright rules
-- **Prettier**: Code formatting
+---
+
+## Key Technologies
+
+- **Vite** — build tool and dev server
+- **Vue 3** — Composition API with `<script setup lang="ts">` everywhere
+- **TypeScript** — full type safety
+- **Vue Router** — `createWebHistory`; `@/` alias maps to `src/`
+- **Pinia** — installed; not yet used for transaction state (composables own reactivity)
+- **Firebase 12** — Firestore for data; no Auth yet
+- **Bootstrap 5 + Bootstrap Icons** — UI framework; no Tailwind
+- **Vitest** — unit tests with jsdom
+- **Playwright** — E2E on Chromium, Firefox, WebKit
+
+---
+
+## Routes
+
+| Path | Name | Component |
+|------|------|-----------|
+| `/` | `home` | `DashboardView` |
+| `/dashboard` | `dashboard` | `DashboardView` |
+| `/add-transaction` | `addTransaction` | `AddTransactionView` (lazy) |
+
+---
+
+## Data Models
+
+### Transaction (`transactions` collection)
+```ts
+{
+  id: number            // derived at read time from doc.id
+  type: 'income' | 'expense' | 'transfer'
+  date: string          // YYYY-MM-DD
+  category: string      // category ID e.g. 'food'
+  subcategory?: string  // subcategory ID e.g. 'restaurant'
+  account: string       // account ID e.g. 'upi'
+  description: string
+  note?: string
+  amount: number        // always positive; type carries sign semantics
+}
+```
+
+Legacy docs may have `paymentMethod` instead of `account` — both are handled in `transactions.ts`.
+
+### Category (`categories` collection)
+```ts
+{ id, label, subcategories?: [{id, label}], isActive?, createdAt?, updatedAt? }
+```
+
+### Account (`accounts` collection)
+```ts
+{ id, label, icon: 'bi bi-*', isActive?, createdAt?, updatedAt? }
+```
+
+---
+
+## Firebase / Environment
+
+Copy `.env.example` to `.env.local` and fill in:
+```
+VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID,
+VITE_FIREBASE_STORAGE_BUCKET, VITE_FIREBASE_MESSAGING_SENDER_ID, VITE_FIREBASE_APP_ID
+VITE_USE_SAMPLE_DATA=false   # 'true' bypasses Firebase entirely
+```
+
+If credentials are missing or `VITE_USE_SAMPLE_DATA=true`, app uses hardcoded sample data silently.
+
+---
+
+## Coding Conventions
+
+1. **Composition API only** — `<script setup lang="ts">` in all `.vue` files; never Options API.
+2. **Import alias** — always `@/` prefix for `src/` (e.g. `@/types/transaction`).
+3. **Date strings** — `YYYY-MM-DD` for Firestore; never native `Date` objects.
+4. **Amount** — always positive `number`; `type` field carries sign.
+5. **IDs** — kebab-case strings for category/account IDs.
+6. **Soft delete** — set `isActive: false`; never hard-delete categories or accounts.
+7. **Version bump** — increment `DEFAULT_CATEGORY_OPTIONS_VERSION` / `DEFAULT_ACCOUNT_OPTIONS_VERSION`
+   when defaults change to trigger auto-sync on next load.
+8. **No `alert()`** — use in-app toast/snackbar for new UX feedback.
+9. **Styling** — `<style scoped>` per component; Bootstrap utilities globally; no Tailwind.
+10. **Tests** — add unit tests in `__tests__/` alongside the module under test.
+
+---
 
 ## Common Tasks
 
-### Making Component Changes:
-- Components are in `src/components/`
-- Always add unit tests in `src/components/__tests__/`
-- Example test pattern: `mount(Component, { props: {...} })`
-- Run `npm run test:unit` after changes
+### Add a new component
+1. Create `src/components/<name>.vue` with `<script setup lang="ts">` and `<style scoped>`.
+2. Add unit test in `src/components/__tests__/<name>.spec.ts`.
 
-### Route Changes:
-- Router config: `src/router/index.ts`
-- Route components: `src/views/`
-- About route uses lazy loading: `() => import('../views/AboutView.vue')`
+### Add a new route
+1. Create view in `src/views/`.
+2. Register in `src/router/index.ts`.
 
-### State Management:
-- Pinia stores: `src/stores/`
-- Use Composition API style: `defineStore('name', () => { ... })`
-- Example store: `useCounterStore` in `counter.ts`
+### Add a new Firestore collection
+1. Define types in `src/types/`.
+2. Add CRUD functions in `src/firebase/<collection>.ts`.
+3. Export via `src/firebase/index.ts` if needed.
 
-### Styling:
-- Global styles: `src/assets/main.css` and `src/assets/base.css`
-- Component styles: Use `<style scoped>` in `.vue` files
-- CSS custom properties used for theming
+### Add a Pinia store
+1. Create `src/stores/<name>.ts` using Composition API style:
+   ```ts
+   export const useMyStore = defineStore('name', () => { ... })
+   ```
 
-## Configuration Files Reference
+---
 
-### Package Scripts:
-- `dev`: Start development server
-- `build`: Production build (type-check + build-only in parallel)
-- `preview`: Serve production build
-- `test:unit`: Run Vitest unit tests
-- `test:e2e`: Run Playwright E2E tests
-- `build-only`: Vite build without type checking
-- `type-check`: Vue TypeScript compiler
-- `lint`: ESLint with auto-fix
-- `format`: Prettier formatting
+## Known TODOs
 
-### Build Output:
-```
-dist/
-├── index.html              # Entry HTML file
-├── assets/
-│   ├── index-[hash].js     # Main application bundle (~97KB)
-│   ├── index-[hash].css    # Main styles (~4KB)
-│   └── AboutView-[hash].js # Lazy-loaded About route (~0.2KB)
-```
+- Bottom navigation routing is not implemented (only console logs).
+- Dashboard Calendar/Monthly/Summary/Description tabs are UI-only stubs.
+- AddTransactionView "Repeat" and camera buttons are UI stubs.
+- Firebase Authentication is not yet integrated.
+- `Transaction.id` should use `doc.id` (string) instead of fragile numeric derivation.
 
-### Development URLs:
-- Development: http://localhost:5173/
+---
+
+## Configuration Reference
+
+| File | Purpose |
+|------|---------|
+| `vite.config.ts` | Vite build config |
+| `tsconfig.json` | TypeScript root config (references app + node configs) |
+| `tsconfig.app.json` | App TypeScript config |
+| `vitest.config.ts` | Vitest unit test config |
+| `playwright.config.ts` | Playwright E2E config |
+| `eslint.config.ts` | ESLint rules (Vue, TS, Vitest, Playwright) |
+| `.prettierrc.json` | Prettier formatting rules |
+| `.editorconfig` | Editor whitespace/indent settings |
+| `firestore.indexes.json` | Composite Firestore indexes |
+
+### Development URLs
+- Dev: http://localhost:5173/
 - Production preview: http://localhost:4173/
 - Vue DevTools: http://localhost:5173/__devtools__/
 
-## Troubleshooting
-
-### Common Issues:
-- **Playwright browser installation fails**: Known limitation in sandboxed environments
-- **Type errors**: Run `npm run type-check` to see detailed TypeScript errors
-- **Import errors**: Check file paths use `@/` alias for `src/` directory
-- **Build failures**: Usually due to TypeScript errors or missing dependencies
-
-### File Locations for Common Tasks:
-- **Add new route**: Edit `src/router/index.ts` and create component in `src/views/`
-- **Add global styles**: Edit `src/assets/main.css` or `src/assets/base.css`
-- **Configure build**: Edit `vite.config.ts`
-- **TypeScript config**: Multiple files - see `tsconfig.json` for references
-- **Test config**: `vitest.config.ts` for unit tests, `playwright.config.ts` for E2E
-- **Linting rules**: `eslint.config.ts`
-- **Code formatting**: `.prettierrc.json`
-
-### IDE Setup:
-- Recommended: VSCode with Volar extension (not Vetur)
-- Extensions configured in `.vscode/extensions.json`
-- EditorConfig settings in `.editorconfig`
+### IDE
+Recommended: VSCode + **Volar** extension (not Vetur).
+Extensions configured in `.vscode/extensions.json`.
