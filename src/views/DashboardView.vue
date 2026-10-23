@@ -51,11 +51,13 @@ const tabs: TabConfig[] = [
 ]
 
 // Navigation items
+const todayLabel = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }).replace('/', '/')
+
 const navItems = ref<NavItem[]>([
   {
     id: 'calendar',
     icon: 'bi bi-calendar3',
-    label: '19/09',
+    label: todayLabel,
     active: true
   },
   {

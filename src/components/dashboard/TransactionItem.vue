@@ -1,31 +1,34 @@
 <template>
   <div
-    class="transaction-item d-flex justify-content-between align-items-center p-3 border-bottom"
+    class="transaction-item"
     @click="emit('select', transaction)"
     role="button"
     :aria-label="`Edit ${transaction.category} transaction of ₹${formatNumber(transaction.amount)}`"
   >
-    <div class="transaction-details">
-      <div class="category-info d-flex flex-column">
-        <span class="category text-muted small">{{ transaction.category }}</span>
-        <span class="subcategory text-muted small">{{ transaction.subcategory }}</span>
-      </div>
+    <!-- Left: Category + Subcategory -->
+    <div class="col-category">
+      <span class="category">{{ transaction.category }}</span>
+      <span v-if="transaction.subcategory" class="subcategory">{{ transaction.subcategory }}</span>
     </div>
-    <div class="payment-description text-center">
-      <div class="payment-method small text-muted">{{ transaction.account }}</div>
-      <div v-if="transaction.description" class="description small">{{ transaction.description }}</div>
+
+    <!-- Middle: Description + Account -->
+    <div class="col-account">
+      <span v-if="transaction.description" class="description-label">{{ transaction.description }}</span>
+      <span class="account-label">{{ transaction.account }}</span>
     </div>
-    <div class="d-flex align-items-center gap-2">
-      <div
-        class="amount fw-bold"
+
+    <!-- Right: Amount + chevron -->
+    <div class="col-amount">
+      <span
+        class="amount"
         :class="{
-          'text-danger': transaction.type === 'expense',
-          'text-success': transaction.type === 'income',
-          'text-primary': transaction.type === 'transfer'
+          'amount-expense': transaction.type === 'expense',
+          'amount-income': transaction.type === 'income',
+          'amount-transfer': transaction.type === 'transfer'
         }"
       >
         ₹ {{ formatNumber(transaction.amount) }}
-      </div>
+      </span>
       <i class="bi bi-chevron-right edit-chevron"></i>
     </div>
   </div>
@@ -45,7 +48,13 @@ const emit = defineEmits<{ select: [transaction: Transaction] }>()
 
 <style scoped>
 .transaction-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
   background-color: white;
+  border-bottom: 1px solid #e9ecef;
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
@@ -58,13 +67,81 @@ const emit = defineEmits<{ select: [transaction: Transaction] }>()
   background-color: #ffe0e3;
 }
 
-.category {
-  font-weight: 500;
+/* Left column */
+.col-category {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
 }
+
+.category {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #212529;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.subcategory {
+  font-size: 0.78rem;
+  color: #6c757d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* Middle column */
+.col-account {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.description-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #212529;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.account-label {
+  font-size: 0.75rem;
+  color: #6c757d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* Right column */
+.col-amount {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.amount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.amount-expense  { color: #dc3545; }
+.amount-income   { color: #198754; }
+.amount-transfer { color: #0d6efd; }
 
 .edit-chevron {
   color: #dee2e6;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   transition: color 0.15s ease, transform 0.15s ease;
   flex-shrink: 0;
 }
@@ -74,10 +151,11 @@ const emit = defineEmits<{ select: [transaction: Transaction] }>()
   transform: translateX(2px);
 }
 
-/* Mobile responsiveness */
-@media (max-width: 768px) {
+@media (max-width: 576px) {
   .transaction-item {
-    padding: 0.75rem !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto;
+    padding: 0.65rem 0.75rem;
+    gap: 0.35rem;
   }
 }
 </style>
