@@ -23,6 +23,11 @@ const router = createRouter({
       path: '/import-pdf',
       name: 'importPdf',
       component: () => import('../views/ImportPdfView.vue'),
+    },
+    {
+      path: '/edit-transaction/:firestoreId',
+      name: 'editTransaction',
+      component: () => import('../views/AddTransactionView.vue'),
     }
   ],
 })

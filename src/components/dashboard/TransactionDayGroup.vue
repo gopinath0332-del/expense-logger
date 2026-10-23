@@ -18,12 +18,13 @@
       :key="transaction.id"
       :transaction="transaction"
       :formatNumber="formatNumber"
+      @select="emit('select', $event)"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { TransactionDay } from '@/types/transaction'
+import type { TransactionDay, Transaction } from '@/types/transaction'
 import TransactionItem from './TransactionItem.vue'
 
 interface Props {
@@ -32,6 +33,7 @@ interface Props {
 }
 
 defineProps<Props>()
+const emit = defineEmits<{ select: [transaction: Transaction] }>()
 </script>
 
 <style scoped>

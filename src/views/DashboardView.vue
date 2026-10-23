@@ -6,7 +6,7 @@
     <DashboardSummary :summary="{ income: summary.income, expenses: summary.expenses, balance: summary.total }" :formatCurrency="formatCurrency" />
 
     <!-- Transaction List -->
-    <TransactionList :transactions="transactions" :formatNumber="formatNumber" />
+    <TransactionList :transactions="transactions" :formatNumber="formatNumber" @select="handleEditTransaction" />
 
     <!-- Floating Action Button -->
     <FloatingActionButton :onClick="handleAddTransaction" />
@@ -28,7 +28,7 @@ import FloatingActionButton from '../components/dashboard/FloatingActionButton.v
 import BottomNavigation from '../components/dashboard/BottomNavigation.vue'
 import { useTransactionData } from '@/composables/useTransactionData'
 import { useFormatting } from '@/composables/useFormatting'
-import type { TabConfig, NavItem } from '@/types/transaction'
+import type { TabConfig, NavItem, Transaction } from '@/types/transaction'
 
 // Router
 const router = useRouter()
@@ -86,6 +86,12 @@ const currentMonth = computed(() => {
 // Event handlers
 const handleAddTransaction = () => {
   router.push({ name: 'addTransaction' })
+}
+
+const handleEditTransaction = (transaction: Transaction) => {
+  if (transaction.firestoreId) {
+    router.push({ name: 'editTransaction', params: { firestoreId: transaction.firestoreId } })
+  }
 }
 
 const handleNavClick = (item: NavItem) => {

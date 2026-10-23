@@ -5,120 +5,168 @@
       <button class="btn btn-link back-btn" @click="goBack">
         <i class="bi bi-chevron-left"></i>
       </button>
-      <h5 class="header-title">Trans.</h5>
-      <button class="btn btn-link">
+      <h5 class="header-title">{{ isEditMode ? 'Edit Transaction' : 'Trans.' }}</h5>
+      <button class="btn btn-link" v-if="!isEditMode">
         <i class="bi bi-star"></i>
       </button>
+      <div v-else style="width: 40px"></div>
     </div>
 
-    <!-- Transaction Type Tabs -->
-    <div class="transaction-tabs">
-      <button
-        v-for="tab in transactionTabs"
-        :key="tab.id"
-        class="tab-btn"
-        :class="{ active: activeTab === tab.id }"
-        @click="activeTab = tab.id"
-      >
-        {{ tab.label }}
-      </button>
+    <!-- Loading state -->
+    <div v-if="isLoading" class="loading-state">
+      <div class="spinner-border text-danger" role="status">
+        <span class="visually-hidden">Loading…</span>
+      </div>
+      <p class="mt-2 text-muted">Loading transaction…</p>
     </div>
 
-    <!-- Form -->
-    <div class="form-container">
-      <!-- Date Field -->
-      <div class="form-group">
-        <label class="form-label">Date</label>
-        <div class="date-input-group">
-          <input
-            v-model="formData.date"
-            type="date"
-            class="form-control"
-          />
-          <button class="btn btn-link repeat-btn">
-            <i class="bi bi-arrow-repeat"></i>
-            <small>Repeat</small>
-          </button>
-        </div>
-      </div>
-
-      <!-- Amount Field -->
-      <div class="form-group">
-        <label class="form-label">Amount</label>
-        <input
-          v-model="formData.amount"
-          type="number"
-          step="0.01"
-          class="form-control"
-          placeholder="0.00"
-        />
-      </div>
-
-      <!-- Category Field -->
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <div class="selector-field" @click="showCategorySelector = true">
-          <span class="selector-text" :class="{ placeholder: !selectedCategoryLabel }">
-            {{ selectedCategoryLabel || 'Select category' }}
-          </span>
-          <i class="bi bi-chevron-down selector-arrow"></i>
-        </div>
-      </div>
-
-      <!-- Account Field -->
-      <div class="form-group">
-        <label class="form-label">Account</label>
-        <div class="selector-field" @click="showAccountSelector = true">
-          <span class="selector-text" :class="{ placeholder: !selectedAccountLabel }">
-            {{ selectedAccountLabel || 'Select account' }}
-          </span>
-          <i class="bi bi-chevron-down selector-arrow"></i>
-        </div>
-      </div>
-
-      <!-- Note Field -->
-      <div class="form-group">
-        <label class="form-label">Note</label>
-        <div class="note-input-group">
-          <input
-            v-model="formData.note"
-            type="text"
-            class="form-control"
-            placeholder="Add a note..."
-          />
-          <button class="btn btn-link note-btn">
-            <i class="bi bi-chat-dots"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Description Field -->
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <textarea
-          v-model="formData.description"
-          class="form-control"
-          rows="3"
-          placeholder="Add a description..."
-        ></textarea>
-      </div>
-
-      <!-- Attachment -->
-      <div class="attachment-section">
-        <button class="btn btn-link attachment-btn">
-          <i class="bi bi-camera"></i>
+    <template v-else>
+      <!-- Transaction Type Tabs -->
+      <div class="transaction-tabs">
+        <button
+          v-for="tab in transactionTabs"
+          :key="tab.id"
+          class="tab-btn"
+          :class="{ active: activeTab === tab.id }"
+          @click="activeTab = tab.id as 'income' | 'expense' | 'transfer'"
+        >
+          {{ tab.label }}
         </button>
       </div>
-    </div>
 
-    <!-- Action Buttons -->
-    <div class="action-buttons">
-      <button class="btn btn-danger save-btn" @click="saveTransaction">
-        Save
-      </button>
-      <button class="btn btn-outline-secondary continue-btn" @click="continueTransaction">
-        Continue
-      </button>
+      <!-- Form -->
+      <div class="form-container">
+        <!-- Date Field -->
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <div class="date-input-group">
+            <input
+              v-model="formData.date"
+              type="date"
+              class="form-control"
+            />
+            <button class="btn btn-link repeat-btn" v-if="!isEditMode">
+              <i class="bi bi-arrow-repeat"></i>
+              <small>Repeat</small>
+            </button>
+          </div>
+        </div>
+
+        <!-- Amount Field -->
+        <div class="form-group">
+          <label class="form-label">Amount</label>
+          <input
+            v-model="formData.amount"
+            type="number"
+            step="0.01"
+            class="form-control"
+            placeholder="0.00"
+          />
+        </div>
+
+        <!-- Category Field -->
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <div class="selector-field" @click="showCategorySelector = true">
+            <span class="selector-text" :class="{ placeholder: !selectedCategoryLabel }">
+              {{ selectedCategoryLabel || 'Select category' }}
+            </span>
+            <i class="bi bi-chevron-down selector-arrow"></i>
+          </div>
+        </div>
+
+        <!-- Account Field -->
+        <div class="form-group">
+          <label class="form-label">Account</label>
+          <div class="selector-field" @click="showAccountSelector = true">
+            <span class="selector-text" :class="{ placeholder: !selectedAccountLabel }">
+              {{ selectedAccountLabel || 'Select account' }}
+            </span>
+            <i class="bi bi-chevron-down selector-arrow"></i>
+          </div>
+        </div>
+
+        <!-- Note Field -->
+        <div class="form-group">
+          <label class="form-label">Note</label>
+          <div class="note-input-group">
+            <input
+              v-model="formData.note"
+              type="text"
+              class="form-control"
+              placeholder="Add a note..."
+            />
+            <button class="btn btn-link note-btn">
+              <i class="bi bi-chat-dots"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Description Field -->
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea
+            v-model="formData.description"
+            class="form-control"
+            rows="3"
+            placeholder="Add a description..."
+          ></textarea>
+        </div>
+
+        <!-- Attachment (add mode only) -->
+        <div class="attachment-section" v-if="!isEditMode">
+          <button class="btn btn-link attachment-btn">
+            <i class="bi bi-camera"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons" v-if="isEditMode">
+        <button
+          class="btn btn-danger save-btn"
+          @click="updateTransaction"
+          :disabled="isSaving"
+        >
+          <span v-if="isSaving" class="spinner-border spinner-border-sm me-1" role="status"></span>
+          {{ isSaving ? 'Saving…' : 'Update' }}
+        </button>
+        <button
+          class="btn btn-outline-danger delete-btn"
+          @click="confirmDelete"
+          :disabled="isSaving"
+        >
+          <i class="bi bi-trash3"></i>
+        </button>
+      </div>
+
+      <div class="action-buttons" v-else>
+        <button class="btn btn-danger save-btn" @click="saveTransaction" :disabled="isSaving">
+          <span v-if="isSaving" class="spinner-border spinner-border-sm me-1" role="status"></span>
+          {{ isSaving ? 'Saving…' : 'Save' }}
+        </button>
+        <button class="btn btn-outline-secondary continue-btn" @click="continueTransaction" :disabled="isSaving">
+          Continue
+        </button>
+      </div>
+    </template>
+
+    <!-- Delete confirmation modal -->
+    <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="showDeleteConfirm = false">
+      <div class="confirm-modal">
+        <div class="confirm-icon">
+          <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+        </div>
+        <h6 class="confirm-title">Delete Transaction?</h6>
+        <p class="confirm-body text-muted">This action cannot be undone.</p>
+        <div class="confirm-actions">
+          <button class="btn btn-outline-secondary" @click="showDeleteConfirm = false">Cancel</button>
+          <button class="btn btn-danger" @click="deleteTransactionConfirmed" :disabled="isSaving">
+            <span v-if="isSaving" class="spinner-border spinner-border-sm me-1" role="status"></span>
+            Delete
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Category Selector Modal -->
@@ -141,21 +189,37 @@
       @select="handleAccountSelect"
       @refresh="refreshAccountOptions"
     />
+
+    <!-- Toast notification -->
+    <ToastNotification
+      v-if="toast.visible"
+      :message="toast.message"
+      :type="toast.type"
+      @dismiss="toast.visible = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, reactive } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import CategorySelector from '@/components/CategorySelector.vue'
 import AccountSelector from '@/components/AccountSelector.vue'
+import ToastNotification from '@/components/ToastNotification.vue'
 import { fetchAccountOptions, fetchCategoryOptions } from '@/firebase'
-import { addTransaction } from '@/firebase/transactions'
+import { addTransaction, updateTransaction as updateTransactionFirestore, deleteTransaction as deleteTransactionFirestore } from '@/firebase/transactions'
+import { db } from '@/firebase/config'
+import { doc, getDoc } from 'firebase/firestore'
 import type { AccountOption } from '@/types/account'
 import type { CategoryOption } from '@/types/category'
 import { getCategoryDisplayLabel } from '@/types/category'
 
 const router = useRouter()
+const route = useRoute()
+
+// Detect edit mode from route param
+const firestoreId = computed(() => route.params.firestoreId as string | undefined)
+const isEditMode = computed(() => !!firestoreId.value)
 
 // Transaction types
 const transactionTabs = [
@@ -164,15 +228,18 @@ const transactionTabs = [
   { id: 'transfer', label: 'Transfer' }
 ]
 
-// Reactive data
-const activeTab = ref('expense') // Default to expense as shown in image
+// Reactive state
+const isLoading = ref(false)
+const isSaving = ref(false)
+const activeTab = ref<'income' | 'expense' | 'transfer'>('expense')
 const showCategorySelector = ref(false)
 const showAccountSelector = ref(false)
+const showDeleteConfirm = ref(false)
 const accountOptions = ref<AccountOption[]>([])
 const categoryOptions = ref<CategoryOption[]>([])
 
 const formData = ref({
-  date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+  date: new Date().toISOString().split('T')[0],
   amount: '',
   category: '',
   subcategory: '',
@@ -181,10 +248,21 @@ const formData = ref({
   description: ''
 })
 
-// Load account and category options from Firebase
-onMounted(async () => {
+const toast = reactive<{ visible: boolean; message: string; type: 'success' | 'error' | 'warning' | 'info' }>({
+  visible: false,
+  message: '',
+  type: 'success'
+})
+
+function showToast(message: string, type: 'success' | 'error' | 'warning' | 'info' = 'success') {
+  toast.message = message
+  toast.type = type
+  toast.visible = true
+}
+
+// Load options from Firebase (with fallback defaults)
+async function loadOptions() {
   try {
-    // Load both account and category options in parallel
     const [accounts, categories] = await Promise.all([
       fetchAccountOptions(),
       fetchCategoryOptions()
@@ -193,7 +271,6 @@ onMounted(async () => {
     categoryOptions.value = categories
   } catch (error) {
     console.error('Failed to load options:', error)
-    // Fallback to default options if Firebase fails
     accountOptions.value = [
       { id: 'cash', label: 'Cash', icon: 'bi bi-cash' },
       { id: 'bank', label: 'Bank Account', icon: 'bi bi-bank' },
@@ -204,38 +281,96 @@ onMounted(async () => {
       { id: 'cash-back', label: 'Cash Back', icon: 'bi bi-arrow-left-circle' }
     ]
     categoryOptions.value = [
-      {
-        id: 'food',
-        label: 'Food',
-        subcategories: [
-          { id: 'restaurant', label: 'Restaurant' },
-          { id: 'groceries', label: 'Groceries' }
-        ]
-      },
+      { id: 'food', label: 'Food', subcategories: [{ id: 'restaurant', label: 'Restaurant' }, { id: 'groceries', label: 'Groceries' }] },
       { id: 'transportation', label: 'Transportation' },
       { id: 'other', label: 'Other' }
     ]
   }
+}
+
+// In edit mode, fetch the existing transaction and pre-fill the form
+async function loadTransactionForEdit(id: string) {
+  if (!db) {
+    showToast('Firebase is not configured. Cannot load transaction.', 'error')
+    return
+  }
+  isLoading.value = true
+  try {
+    const docRef = doc(db, 'transactions', id)
+    const snapshot = await getDoc(docRef)
+    if (!snapshot.exists()) {
+      showToast('Transaction not found.', 'error')
+      router.back()
+      return
+    }
+    const data = snapshot.data()
+    activeTab.value = (data.type as 'income' | 'expense' | 'transfer') || 'expense'
+    formData.value = {
+      date: data.date ?? new Date().toISOString().split('T')[0],
+      amount: String(data.amount ?? ''),
+      category: data.category ?? '',
+      subcategory: data.subcategory ?? '',
+      account: data.account ?? data.paymentMethod ?? '',
+      note: data.note ?? '',
+      description: data.description ?? ''
+    }
+  } catch (error) {
+    console.error('Failed to load transaction:', error)
+    showToast('Failed to load transaction.', 'error')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  await loadOptions()
+  if (isEditMode.value && firestoreId.value) {
+    await loadTransactionForEdit(firestoreId.value)
+  }
 })
 
-// Computed properties for displaying selected values
-const selectedCategoryLabel = computed(() => {
-  return getCategoryDisplayLabel(
-    categoryOptions.value,
-    formData.value.category,
-    formData.value.subcategory
-  )
-})
+// Computed labels
+const selectedCategoryLabel = computed(() =>
+  getCategoryDisplayLabel(categoryOptions.value, formData.value.category, formData.value.subcategory)
+)
 
 const selectedAccountLabel = computed(() => {
   const account = accountOptions.value.find(acc => acc.id === formData.value.account)
   return account?.label || ''
 })
 
-// Methods
-const goBack = () => {
-  router.back()
+// Validation
+function validate(): boolean {
+  if (!formData.value.amount || parseFloat(formData.value.amount) <= 0) {
+    showToast('Please enter a valid amount.', 'warning')
+    return false
+  }
+  if (!formData.value.category) {
+    showToast('Please select a category.', 'warning')
+    return false
+  }
+  if (!formData.value.account) {
+    showToast('Please select an account.', 'warning')
+    return false
+  }
+  return true
 }
+
+function buildPayload() {
+  return {
+    type: activeTab.value,
+    date: formData.value.date,
+    category: formData.value.category,
+    subcategory: formData.value.subcategory || '',
+    account: formData.value.account,
+    description: formData.value.description || '',
+    note: formData.value.note || '',
+    amount: parseFloat(formData.value.amount)
+  }
+}
+
+// Handlers
+const goBack = () => router.back()
 
 const handleCategorySelect = (category: { id: string; label: string }, subcategory?: { id: string; label: string }) => {
   formData.value.category = category.id
@@ -247,124 +382,78 @@ const handleAccountSelect = (account: { id: string; label: string; icon: string 
 }
 
 const refreshAccountOptions = async () => {
-  try {
-    accountOptions.value = await fetchAccountOptions()
-  } catch (error) {
-    console.error('Failed to refresh account options:', error)
-  }
+  try { accountOptions.value = await fetchAccountOptions() }
+  catch (error) { console.error('Failed to refresh account options:', error) }
 }
 
 const refreshCategoryOptions = async () => {
-  try {
-    categoryOptions.value = await fetchCategoryOptions()
-  } catch (error) {
-    console.error('Failed to refresh category options:', error)
-  }
+  try { categoryOptions.value = await fetchCategoryOptions() }
+  catch (error) { console.error('Failed to refresh category options:', error) }
 }
 
+// ── Add mode ──────────────────────────────────────────────────
 const saveTransaction = async () => {
-  // Validate required fields
-  if (!formData.value.amount || parseFloat(formData.value.amount) <= 0) {
-    alert('Please enter a valid amount')
-    return
-  }
-
-  if (!formData.value.category) {
-    alert('Please select a category')
-    return
-  }
-
-  if (!formData.value.account) {
-    alert('Please select an account')
-    return
-  }
-
+  if (!validate()) return
+  isSaving.value = true
   try {
-    // Prepare transaction data
-    const transactionData = {
-      type: activeTab.value as 'income' | 'expense' | 'transfer',
-      date: formData.value.date,
-      category: formData.value.category,
-      subcategory: formData.value.subcategory || '',
-      account: formData.value.account,
-      description: formData.value.description || '',
-      note: formData.value.note || '',
-      amount: parseFloat(formData.value.amount)
-    }
-
-    console.log('Saving transaction:', transactionData)
-
-    // Save to Firebase
-    const transactionId = await addTransaction(transactionData)
-    console.log('Transaction saved successfully with ID:', transactionId)
-
-    // Show success message
-    alert('Transaction saved successfully!')
-
-    // Navigate back to dashboard
-    router.push({ name: 'dashboard' })
+    await addTransaction(buildPayload())
+    showToast('Transaction saved successfully!', 'success')
+    setTimeout(() => router.push({ name: 'dashboard' }), 1200)
   } catch (error) {
     console.error('Failed to save transaction:', error)
-    alert('Failed to save transaction. Please try again.')
+    showToast('Failed to save transaction. Please try again.', 'error')
+  } finally {
+    isSaving.value = false
   }
 }
 
 const continueTransaction = async () => {
-  // Validate required fields
-  if (!formData.value.amount || parseFloat(formData.value.amount) <= 0) {
-    alert('Please enter a valid amount')
-    return
-  }
-
-  if (!formData.value.category) {
-    alert('Please select a category')
-    return
-  }
-
-  if (!formData.value.account) {
-    alert('Please select an account')
-    return
-  }
-
+  if (!validate()) return
+  isSaving.value = true
   try {
-    // Prepare transaction data
-    const transactionData = {
-      type: activeTab.value as 'income' | 'expense' | 'transfer',
-      date: formData.value.date,
-      category: formData.value.category,
-      subcategory: formData.value.subcategory || '',
-      account: formData.value.account,
-      description: formData.value.description || '',
-      note: formData.value.note || '',
-      amount: parseFloat(formData.value.amount)
-    }
-
-    console.log('Saving transaction (continue mode):', transactionData)
-
-    // Save to Firebase
-    const transactionId = await addTransaction(transactionData)
-    console.log('Transaction saved successfully with ID:', transactionId)
-
-    // Show success message
-    alert('Transaction saved! Add another transaction.')
-
-    // Reset form but keep category and account for convenience
-    const currentCategory = formData.value.category
-    const currentSubcategory = formData.value.subcategory
-    const currentAccount = formData.value.account
-
-    formData.value = {
-      date: new Date().toISOString().split('T')[0],
-      amount: '',
-      category: currentCategory, // Keep previous category
-      subcategory: currentSubcategory, // Keep previous subcategory
-      account: currentAccount, // Keep previous account
-      note: '',
-      description: ''
-    }
+    await addTransaction(buildPayload())
+    showToast('Transaction saved! Add another.', 'success')
+    const prev = { category: formData.value.category, subcategory: formData.value.subcategory, account: formData.value.account }
+    formData.value = { date: new Date().toISOString().split('T')[0], amount: '', ...prev, note: '', description: '' }
   } catch (error) {
     console.error('Failed to save transaction:', error)
-    alert('Failed to save transaction. Please try again.')
+    showToast('Failed to save transaction. Please try again.', 'error')
+  } finally {
+    isSaving.value = false
+  }
+}
+
+// ── Edit mode ─────────────────────────────────────────────────
+const updateTransaction = async () => {
+  if (!validate() || !firestoreId.value) return
+  isSaving.value = true
+  try {
+    await updateTransactionFirestore(firestoreId.value, buildPayload())
+    showToast('Transaction updated!', 'success')
+    setTimeout(() => router.push({ name: 'dashboard' }), 1200)
+  } catch (error) {
+    console.error('Failed to update transaction:', error)
+    showToast('Failed to update transaction. Please try again.', 'error')
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const confirmDelete = () => { showDeleteConfirm.value = true }
+
+const deleteTransactionConfirmed = async () => {
+  if (!firestoreId.value) return
+  isSaving.value = true
+  try {
+    await deleteTransactionFirestore(firestoreId.value)
+    showDeleteConfirm.value = false
+    showToast('Transaction deleted.', 'success')
+    setTimeout(() => router.push({ name: 'dashboard' }), 1200)
+  } catch (error) {
+    console.error('Failed to delete transaction:', error)
+    showToast('Failed to delete transaction. Please try again.', 'error')
+  } finally {
+    isSaving.value = false
   }
 }
 </script>
@@ -375,6 +464,14 @@ const continueTransaction = async () => {
   margin: 0 auto;
   background-color: #f8f9fa;
   min-height: 100vh;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
 }
 
 .header {
@@ -541,8 +638,13 @@ const continueTransaction = async () => {
   color: white;
 }
 
-/* Selector field styles */
+.delete-btn {
+  padding: 0.875rem 1.25rem;
+  font-size: 1.1rem;
+  border-radius: 0.5rem;
+}
 
+/* Selector field styles */
 .selector-field {
   display: flex;
   align-items: center;
@@ -570,7 +672,7 @@ const continueTransaction = async () => {
 }
 
 .selector-text.placeholder {
-  color: white;
+  color: #adb5bd;
 }
 
 .selector-arrow {
@@ -581,6 +683,61 @@ const continueTransaction = async () => {
 
 .selector-field:hover .selector-arrow {
   color: #dc3545;
+}
+
+/* Delete confirmation modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.confirm-modal {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem 1.5rem 1.5rem;
+  text-align: center;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  animation: popIn 0.2s ease;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.confirm-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.confirm-title {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.confirm-body {
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.confirm-actions .btn {
+  flex: 1;
+  padding: 0.625rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
 }
 
 /* Responsive adjustments */

@@ -80,6 +80,7 @@ function processTransactionData(querySnapshot: QuerySnapshot<DocumentData> | Fil
     const data = doc.data() as LegacyTransactionData
     const transaction: Transaction = {
       id: Number(doc.id.split('-')[1]) || Math.random(),
+      firestoreId: doc.id,
       type: data.type || 'expense',
       date: data.date,
       category: data.category,

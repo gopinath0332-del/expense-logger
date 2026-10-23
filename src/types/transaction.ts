@@ -1,5 +1,6 @@
 export interface Transaction {
   id: number
+  firestoreId?: string // Firestore document ID for edit/delete operations
   type: 'income' | 'expense' | 'transfer'
   date: string
   category: string
