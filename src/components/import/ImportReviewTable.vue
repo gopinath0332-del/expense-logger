@@ -134,13 +134,13 @@
                 @change="onCategoryCombinedChange(tx.importId, ($event.target as HTMLSelectElement).value)"
               >
                 <template v-for="cat in categories" :key="cat.id">
-                  <option :value="cat.id">{{ cat.label }}</option>
+                  <option :value="cat.id">{{ getCategoryIcon(cat.label) }} {{ cat.label }}</option>
                   <option
                     v-for="sub in cat.subcategories || []"
                     :key="`${cat.id}:${sub.id}`"
                     :value="`${cat.id}:${sub.id}`"
                   >
-                    &nbsp;&nbsp;↳ {{ cat.label }} > {{ sub.label }}
+                    &nbsp;&nbsp;↳ {{ getCategoryIcon(sub.label || cat.label) }} {{ cat.label }} > {{ sub.label }}
                   </option>
                 </template>
               </select>
@@ -167,6 +167,7 @@ import { computed } from 'vue'
 import type { ImportedTransaction } from '@/types/pdfImport'
 import type { CategoryOption } from '@/types/category'
 import type { AccountOption } from '@/types/account'
+import { getCategoryIcon } from '@/utils/categoryMetadata'
 
 const props = defineProps<{
   transactions: ImportedTransaction[]

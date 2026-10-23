@@ -7,7 +7,10 @@
   >
     <!-- Left: Category + Subcategory -->
     <div class="col-category">
-      <span class="category">{{ transaction.category }}</span>
+      <span class="category">
+        <span class="category-icon me-1">{{ getCategoryIcon(transaction.category) }}</span>
+        <span>{{ transaction.category }}</span>
+      </span>
       <span v-if="transaction.subcategory" class="subcategory">{{ transaction.subcategory }}</span>
     </div>
 
@@ -36,6 +39,7 @@
 
 <script setup lang="ts">
 import type { Transaction } from '@/types/transaction'
+import { getCategoryIcon } from '@/utils/categoryMetadata'
 
 interface Props {
   transaction: Transaction
@@ -83,6 +87,14 @@ const emit = defineEmits<{ select: [transaction: Transaction] }>()
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.category-icon {
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .subcategory {

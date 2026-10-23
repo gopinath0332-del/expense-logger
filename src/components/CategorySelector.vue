@@ -103,7 +103,10 @@
               @click="handleCategoryClick(category)"
               :title="getCategoryTooltip(category)"
             >
-              {{ category.label }}
+              <span class="cat-btn-content">
+                <span class="category-icon me-1">{{ category.icon || getCategoryIcon(category.label) }}</span>
+                <span class="category-label-text">{{ category.label }}</span>
+              </span>
               <i v-if="category.subcategories && category.subcategories.length > 0"
                  class="bi bi-chevron-right subcategory-arrow"></i>
             </button>
@@ -117,7 +120,10 @@
               class="category-manage-item"
             >
               <div class="category-info">
-                <span class="category-name">{{ category.label }}</span>
+                <div class="d-flex align-items-center">
+                  <span class="category-icon me-2">{{ category.icon || getCategoryIcon(category.label) }}</span>
+                  <span class="category-name">{{ category.label }}</span>
+                </div>
                 <span v-if="category.subcategories && category.subcategories.length > 0" class="subcategory-count">
                   {{ category.subcategories.length }} subcategories
                 </span>
@@ -161,7 +167,10 @@
             :class="{ active: selectedCategory === selectedParentCategory?.id && !selectedSubcategory }"
             @click="selectParentOnly"
           >
-            {{ selectedParentCategory?.label }}
+            <span class="cat-btn-content">
+              <span class="category-icon me-1">{{ selectedParentCategory?.icon || getCategoryIcon(selectedParentCategory?.label || '') }}</span>
+              <span>{{ selectedParentCategory?.label }}</span>
+            </span>
             <small class="parent-label">General</small>
           </button>
 
@@ -173,7 +182,10 @@
             :class="{ active: selectedSubcategory === subcategory.id }"
             @click="selectSubcategory(subcategory)"
           >
-            {{ subcategory.label }}
+            <span class="cat-btn-content">
+              <span class="category-icon me-1">{{ subcategory.icon || getCategoryIcon(subcategory.label) }}</span>
+              <span>{{ subcategory.label }}</span>
+            </span>
           </button>
 
           <!-- Add New Subcategory Button -->
@@ -194,15 +206,18 @@
 import { ref, reactive } from 'vue'
 import { addCategoryOption, updateCategoryOption } from '@/firebase'
 import type { CategoryOption, CategorySubcategory } from '@/types/category'
+import { getCategoryIcon } from '@/utils/categoryMetadata'
 
 interface Subcategory {
   id: string
   label: string
+  icon?: string
 }
 
 interface Category {
   id: string
   label: string
+  icon?: string
   subcategories?: Subcategory[]
 }
 

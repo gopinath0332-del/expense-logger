@@ -69,6 +69,7 @@
           <label class="form-label">Category</label>
           <div class="selector-field" @click="showCategorySelector = true">
             <span class="selector-text" :class="{ placeholder: !selectedCategoryLabel }">
+              <span v-if="selectedCategoryLabel" class="category-icon me-1">{{ getCategoryIcon(formData.category) }}</span>
               {{ selectedCategoryLabel || 'Select category' }}
             </span>
             <i class="bi bi-chevron-down selector-arrow"></i>
@@ -213,6 +214,7 @@ import { doc, getDoc } from 'firebase/firestore'
 import type { AccountOption } from '@/types/account'
 import type { CategoryOption } from '@/types/category'
 import { getCategoryDisplayLabel } from '@/types/category'
+import { getCategoryIcon } from '@/utils/categoryMetadata'
 
 const router = useRouter()
 const route = useRoute()

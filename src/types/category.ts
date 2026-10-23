@@ -1,62 +1,67 @@
 export interface CategorySubcategory {
   id: string
   label: string
+  icon?: string
 }
 
 export interface Category {
   id: string
   label: string
+  icon?: string
   subcategories?: CategorySubcategory[]
   isActive?: boolean
   createdAt?: Date
   updatedAt?: Date
 }
 
-export type CategoryOption = Pick<Category, 'id' | 'label' | 'subcategories'>
+export type CategoryOption = Pick<Category, 'id' | 'label' | 'icon' | 'subcategories'>
 
 // Version number for tracking changes to default category options
 // Increment this when adding, removing, or modifying categories/subcategories
-export const DEFAULT_CATEGORY_OPTIONS_VERSION = '1.1.0'
+export const DEFAULT_CATEGORY_OPTIONS_VERSION = '1.2.0'
 
 export const DEFAULT_CATEGORY_OPTIONS: CategoryOption[] = [
   {
     id: 'food',
     label: 'Food',
+    icon: '🍜',
     subcategories: [
-      { id: 'restaurant', label: 'Restaurant' },
-      { id: 'groceries', label: 'Groceries' },
-      { id: 'fast-food', label: 'Fast Food' },
-      { id: 'beverages', label: 'Beverages' }
+      { id: 'restaurant', label: 'Restaurant', icon: '🍽️' },
+      { id: 'groceries', label: 'Groceries', icon: '🛒' },
+      { id: 'fast-food', label: 'Fast Food', icon: '🍔' },
+      { id: 'beverages', label: 'Beverages', icon: '🥤' }
     ]
   },
   {
     id: 'social-life',
     label: 'Social Life',
+    icon: '👥',
     subcategories: [
-      { id: 'friend', label: 'Friend' },
-      { id: 'fellowship', label: 'Fellowship' },
-      { id: 'alumni', label: 'Alumni' }
+      { id: 'friend', label: 'Friend', icon: '🤝' },
+      { id: 'fellowship', label: 'Fellowship', icon: '🍻' },
+      { id: 'alumni', label: 'Alumni', icon: '🎓' }
     ]
   },
   {
     id: 'self-development',
     label: 'Self-development',
+    icon: '🌱',
     subcategories: [
-      { id: 'books', label: 'Books' },
-      { id: 'courses', label: 'Courses' },
-      { id: 'workshops', label: 'Workshops' }
+      { id: 'books', label: 'Books', icon: '📚' },
+      { id: 'courses', label: 'Courses', icon: '💻' },
+      { id: 'workshops', label: 'Workshops', icon: '🛠️' }
     ]
   },
-  { id: 'transportation', label: 'Transportation' },
-  { id: 'culture', label: 'Culture' },
-  { id: 'household', label: 'Household' },
-  { id: 'apparel', label: 'Apparel' },
-  { id: 'beauty', label: 'Beauty' },
-  { id: 'health', label: 'Health' },
-  { id: 'education', label: 'Education' },
-  { id: 'gift', label: 'Gift' },
-  { id: 'dues', label: 'Dues' },
-  { id: 'other', label: 'Other' }
+  { id: 'transportation', label: 'Transportation', icon: '🚗' },
+  { id: 'culture', label: 'Culture', icon: '🖼️' },
+  { id: 'household', label: 'Household', icon: '🏠' },
+  { id: 'apparel', label: 'Apparel', icon: '👗' },
+  { id: 'beauty', label: 'Beauty', icon: '💄' },
+  { id: 'health', label: 'Health', icon: '💊' },
+  { id: 'education', label: 'Education', icon: '📖' },
+  { id: 'gift', label: 'Gift', icon: '🎁' },
+  { id: 'dues', label: 'Dues', icon: '🧾' },
+  { id: 'other', label: 'Other', icon: '📦' }
 ]
 
 /**
