@@ -27,14 +27,14 @@ describe('Account Options Firebase Functions', () => {
   it('should have default account options defined', () => {
     expect(DEFAULT_ACCOUNT_OPTIONS).toBeDefined()
     expect(DEFAULT_ACCOUNT_OPTIONS.length).toBeGreaterThan(0)
-    expect(DEFAULT_ACCOUNT_OPTIONS).toContain(
+    expect(DEFAULT_ACCOUNT_OPTIONS).toContainEqual(
       expect.objectContaining({
         id: 'debit-card',
         label: 'Debit Cards',
         icon: 'bi bi-credit-card-2-front'
       })
     )
-    expect(DEFAULT_ACCOUNT_OPTIONS).toContain(
+    expect(DEFAULT_ACCOUNT_OPTIONS).toContainEqual(
       expect.objectContaining({
         id: 'cash-back',
         label: 'Cash Back',

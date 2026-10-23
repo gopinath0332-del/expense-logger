@@ -33,13 +33,13 @@ describe('Category Options Firebase Functions', () => {
   it('should have default category options defined', () => {
     expect(DEFAULT_CATEGORY_OPTIONS).toBeDefined()
     expect(DEFAULT_CATEGORY_OPTIONS.length).toBeGreaterThan(0)
-    expect(DEFAULT_CATEGORY_OPTIONS).toContain(
+    expect(DEFAULT_CATEGORY_OPTIONS).toContainEqual(
       expect.objectContaining({
         id: 'food',
         label: 'Food'
       })
     )
-    expect(DEFAULT_CATEGORY_OPTIONS.find(cat => cat.id === 'food')?.subcategories).toContain(
+    expect(DEFAULT_CATEGORY_OPTIONS.find(cat => cat.id === 'food')?.subcategories).toContainEqual(
       expect.objectContaining({
         id: 'restaurant',
         label: 'Restaurant'
