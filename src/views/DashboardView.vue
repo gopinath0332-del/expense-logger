@@ -5,8 +5,26 @@
     <DashboardTabs :tabs="tabs" :activeTab="activeTab" @update:activeTab="activeTab = $event" />
     <DashboardSummary :summary="{ income: summary.income, expenses: summary.expenses, balance: summary.total }" :formatCurrency="formatCurrency" />
 
-    <!-- Transaction List -->
-    <TransactionList :transactions="transactions" :formatNumber="formatNumber" @select="handleEditTransaction" />
+    <!-- Tab Views -->
+    <TransactionList
+      v-if="activeTab === 'Daily'"
+      :transactions="transactions"
+      :formatNumber="formatNumber"
+      @select="handleEditTransaction"
+    />
+
+    <DashboardCalendar
+      v-else-if="activeTab === 'Calendar'"
+      :transactions="transactions"
+      :currentDate="currentDate"
+      :formatNumber="formatNumber"
+      @selectTransaction="handleEditTransaction"
+    />
+
+    <div v-else class="text-center text-muted py-5">
+      <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
+      <p class="mb-0">{{ activeTab }} view is coming soon</p>
+    </div>
 
     <!-- Floating Action Button -->
     <FloatingActionButton :onClick="handleAddTransaction" />
@@ -24,6 +42,7 @@ import DashboardDateNav from '../components/dashboard/DashboardDateNav.vue'
 import DashboardTabs from '../components/dashboard/DashboardTabs.vue'
 import DashboardSummary from '../components/dashboard/DashboardSummary.vue'
 import TransactionList from '../components/dashboard/TransactionList.vue'
+import DashboardCalendar from '../components/dashboard/DashboardCalendar.vue'
 import FloatingActionButton from '../components/dashboard/FloatingActionButton.vue'
 import BottomNavigation from '../components/dashboard/BottomNavigation.vue'
 import { useTransactionData } from '@/composables/useTransactionData'
