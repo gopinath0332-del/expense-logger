@@ -75,7 +75,7 @@ const todayLabel = new Date().toLocaleDateString('en-GB', { day: '2-digit', mont
 const navItems = ref<NavItem[]>([
   {
     id: 'calendar',
-    icon: 'bi bi-calendar3',
+    icon: 'bi bi-journal-text',
     label: todayLabel,
     active: true
   },
@@ -121,7 +121,9 @@ const handleNavClick = (item: NavItem) => {
     navItem.active = navItem.id === item.id
   })
 
-  if (item.id === 'more') {
+  if (item.id === 'stats') {
+    router.push({ name: 'stats' })
+  } else if (item.id === 'more') {
     router.push({ name: 'importPdf' })
   }
 }

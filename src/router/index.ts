@@ -28,6 +28,11 @@ const router = createRouter({
       path: '/edit-transaction/:firestoreId',
       name: 'editTransaction',
       component: () => import('../views/AddTransactionView.vue'),
+    },
+    {
+      path: '/stats',
+      name: 'stats',
+      component: () => import('../views/StatsView.vue'),
     }
   ],
 })

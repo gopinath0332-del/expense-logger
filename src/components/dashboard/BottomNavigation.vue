@@ -44,11 +44,23 @@ const handleNavClick = (item: NavItem) => {
 }
 
 .nav-item i {
-  font-size: 1.2rem;
-  margin-bottom: 0.25rem;
+  font-size: 1.25rem;
+  margin-bottom: 0.2rem;
+  color: #8e8e93;
+  transition: color 0.15s ease;
 }
 
 .nav-item.active i {
-  color: #dc3545;
+  color: #ea5455;
+}
+
+.nav-item small {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.nav-item.active small {
+  color: #ea5455 !important;
+  font-weight: 600;
 }
 </style>
