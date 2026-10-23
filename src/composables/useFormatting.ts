@@ -1,16 +1,21 @@
 export function useFormatting() {
+  const inFormatter = new Intl.NumberFormat('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+
   /**
-   * Formats a number as currency with 2 decimal places
+   * Formats a number as Indian-locale currency with 2 decimal places
    */
   const formatCurrency = (amount: number): string => {
-    return amount.toFixed(2)
+    return inFormatter.format(amount)
   }
 
   /**
-   * Formats a number with 2 decimal places
+   * Formats a number with Indian grouping (e.g. 1,02,604.64)
    */
   const formatNumber = (amount: number): string => {
-    return amount.toFixed(2)
+    return inFormatter.format(amount)
   }
 
   /**
