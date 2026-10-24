@@ -16,7 +16,11 @@ const CATEGORIES_COLLECTION = 'categories'
 export async function fetchCategoryOptions(): Promise<CategoryOption[]> {
   if (!db) throw new Error('Firebase is not initialized')
   try {
-    await syncDefaultCategoryOptions()
+    try {
+      await syncDefaultCategoryOptions()
+    } catch (syncErr) {
+      console.warn('Sync default categories skipped or failed:', syncErr)
+    }
     const querySnapshot = await getDocs(collection(db, CATEGORIES_COLLECTION))
     if (querySnapshot.empty) {
       await initializeDefaultCategoryOptions()
@@ -30,13 +34,14 @@ export async function fetchCategoryOptions(): Promise<CategoryOption[]> {
         categories.push({
           id: data.id,
           label: data.label,
+          icon: data.icon,
           subcategories: data.subcategories
         })
       }
     })
     return categories
   } catch (error) {
-    console.error('Error fetching category options:', error)
+    console.error('Error fetching category options from Firestore:', error)
     throw error
   }
 }
@@ -87,7 +92,7 @@ export async function updateCategoryOption(
   if (!db) throw new Error('Firebase is not initialized')
   try {
     const docRef = doc(db!, CATEGORIES_COLLECTION, id)
-    const updateData = { ...updates, updatedAt: new Date() }
+    const updateData = { ...updates, isActive: true, updatedAt: new Date() }
     await updateDoc(docRef, updateData as DocumentData)
   } catch (error) {
     console.error('Error updating category option:', error)
@@ -140,17 +145,20 @@ export async function syncDefaultCategoryOptions(): Promise<void> {
         await setDoc(docRef, categoryData)
         console.log(`Added new category option: ${defaultCategory.label}`)
       } else {
-        // Check for changes in category or subcategories
+        // Check for changes in category or subcategories, or if category was inactive
         const hasChanges = hasCategoryChanges(existingCategory, defaultCategory)
+        const needsReactivation = existingCategory.isActive === false
 
-        if (hasChanges) {
+        if (hasChanges || needsReactivation) {
           const docRef = doc(db!, CATEGORIES_COLLECTION, defaultCategory.id)
           await updateDoc(docRef, {
             label: defaultCategory.label,
+            icon: defaultCategory.icon || existingCategory.icon || '',
             subcategories: defaultCategory.subcategories || [],
+            isActive: true,
             updatedAt: new Date()
           } as DocumentData)
-          console.log(`Updated category option: ${defaultCategory.label}`)
+          console.log(`Updated/reactivated category option: ${defaultCategory.label}`)
 
           // Log specific changes for debugging
           if (existingCategory.label !== defaultCategory.label) {
@@ -167,23 +175,15 @@ export async function syncDefaultCategoryOptions(): Promise<void> {
         }
       }
 
-      // Remove from map to track what's left (orphaned categories)
+      // Remove from map to track what's left
       existingCategories.delete(defaultCategory.id)
     })
 
     await Promise.all(syncPromises)
 
-    // Handle orphaned categories (exist in Firebase but not in defaults)
+    // Preserve custom categories created by users - do NOT soft-delete them!
     if (existingCategories.size > 0) {
-      console.log(`Found ${existingCategories.size} orphaned categories in Firebase:`)
-      for (const [id, category] of existingCategories) {
-        console.log(`  - "${category.label}" (${id}) - not in defaults, marking as inactive`)
-        const docRef = doc(db!, CATEGORIES_COLLECTION, id)
-        await updateDoc(docRef, {
-          isActive: false,
-          updatedAt: new Date()
-        } as DocumentData)
-      }
+      console.log(`Preserved ${existingCategories.size} custom categories in Firebase`)
     }
     await setDoc(versionDocRef, {
       version: DEFAULT_CATEGORY_OPTIONS_VERSION,

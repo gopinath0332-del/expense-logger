@@ -65,7 +65,12 @@ export const CATEGORY_KEYWORD_RULES: CategoryKeywordRule[] = [
     categoryId: 'transportation'
   },
   {
-    keywords: ['pharmacy', 'hospital', 'clinic', 'medical', 'apollo', 'med', 'health', 'doctor', 'diagnostic', 'lab'],
+    keywords: ['pharmacy', 'hospital', 'clinic', 'medical', 'apollo', 'med', 'medicine', 'diagnostic', 'lab'],
+    categoryId: 'health',
+    subcategoryId: 'medicine'
+  },
+  {
+    keywords: ['doctor', 'health', 'fitness', 'gym'],
     categoryId: 'health'
   },
   {
@@ -81,20 +86,62 @@ export const CATEGORY_KEYWORD_RULES: CategoryKeywordRule[] = [
     categoryId: 'apparel'
   },
   {
+    keywords: ['badminton', 'shuttle', 'court', 'playo'],
+    categoryId: 'badminton'
+  },
+  {
+    keywords: ['fish', 'aqua', 'aquarium', 'golden aqua'],
+    categoryId: 'pet',
+    subcategoryId: 'fish'
+  },
+  {
+    keywords: ['pet', 'dog', 'cat', 'vet', 'veterinary', 'puppy', 'kitten'],
+    categoryId: 'pet'
+  },
+  {
+    keywords: ['electricity', 'electric', 'power bill', 'tneb', 'bescom'],
+    categoryId: 'bill',
+    subcategoryId: 'electricity'
+  },
+  {
+    keywords: ['broadband', 'wifi', 'internet', 'fibernet', 'act fibernet', 'aravindh'],
+    categoryId: 'bill',
+    subcategoryId: 'internet'
+  },
+  {
+    keywords: ['water board', 'water bill'],
+    categoryId: 'bill',
+    subcategoryId: 'water'
+  },
+  {
+    keywords: ['recharge', 'mobile bill', 'prepaid', 'postpaid'],
+    categoryId: 'bill',
+    subcategoryId: 'mobile'
+  },
+  {
+    keywords: ['bill', 'autopay', 'utilities'],
+    categoryId: 'bill'
+  },
+  {
+    keywords: ['general-store', 'general store', 'stationaries', 'stationery'],
+    categoryId: 'school',
+    subcategoryId: 'general-store'
+  },
+  {
     keywords: ['book', 'course', 'udemy', 'coursera', 'training', 'workshop', 'tuition', 'education', 'school', 'college'],
     categoryId: 'education'
   },
   {
-    keywords: ['electricity', 'water', 'gas', 'broadband', 'wifi', 'rent', 'maintenance'],
+    keywords: ['rent', 'maintenance'],
     categoryId: 'household'
   },
   {
-    keywords: ['amazon', 'flipkart', 'meesho', 'purchase', 'shopping'],
-    categoryId: 'other'
+    keywords: ['amazon', 'flipkart', 'meesho', 'purchase', 'shopping', 'e-commerce', 'e-comerce'],
+    categoryId: 'e-comerce'
   },
   {
     keywords: ['zerodha', 'groww', 'upstox', 'angelone', 'angel one', 'kite', 'sharekhan', 'motilal', 'mutual fund', 'investment', 'stocks'],
-    categoryId: 'investment'
+    categoryId: 'zerodha'
   }
 ]
 

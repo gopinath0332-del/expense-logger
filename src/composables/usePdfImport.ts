@@ -9,6 +9,9 @@ import { fetchAccountOptions, fetchCategoryOptions } from '@/firebase'
 import { transactionCache } from '@/services/transactionCache'
 import { useSampleData } from '@/firebase/config'
 
+import { DEFAULT_CATEGORY_OPTIONS } from '@/types/category'
+import { DEFAULT_ACCOUNT_OPTIONS } from '@/types/account'
+
 export function usePdfImport() {
   const step = ref<ImportStep>('upload')
   const transactions = ref<ImportedTransaction[]>([])
@@ -23,7 +26,7 @@ export function usePdfImport() {
   const parser = new AxisBankParser()
 
   /**
-   * Load category and account options from Firebase or defaults
+   * Load category and account options from Firestore categories collection
    */
   async function loadOptions() {
     try {
@@ -34,36 +37,9 @@ export function usePdfImport() {
       accounts.value = accs
       categories.value = cats
     } catch (err) {
-      console.error('Failed to load accounts/categories for import:', err)
-      // Provide fallback defaults if Firebase fetch fails
-      accounts.value = [
-        { id: 'bank', label: 'Bank Account', icon: 'bi bi-bank' },
-        { id: 'upi', label: 'UPI', icon: 'bi bi-phone' },
-        { id: 'cash', label: 'Cash', icon: 'bi bi-cash' },
-        { id: 'credit-card', label: 'Credit Card', icon: 'bi bi-credit-card' },
-        { id: 'debit-card', label: 'Debit Cards', icon: 'bi bi-credit-card-2-front' },
-        { id: 'wallet', label: 'Wallet', icon: 'bi bi-wallet2' }
-      ]
-      categories.value = [
-        {
-          id: 'food',
-          label: 'Food',
-          subcategories: [
-            { id: 'restaurant', label: 'Restaurant' },
-            { id: 'groceries', label: 'Groceries' },
-            { id: 'fast-food', label: 'Fast Food' },
-            { id: 'beverages', label: 'Beverages' }
-          ]
-        },
-        { id: 'transportation', label: 'Transportation' },
-        { id: 'health', label: 'Health' },
-        { id: 'culture', label: 'Culture' },
-        { id: 'household', label: 'Household' },
-        { id: 'apparel', label: 'Apparel' },
-        { id: 'beauty', label: 'Beauty' },
-        { id: 'education', label: 'Education' },
-        { id: 'other', label: 'Other' }
-      ]
+      console.error('Failed to load accounts/categories from Firestore for import:', err)
+      accounts.value = DEFAULT_ACCOUNT_OPTIONS
+      categories.value = DEFAULT_CATEGORY_OPTIONS
     }
   }
 
