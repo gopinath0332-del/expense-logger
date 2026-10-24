@@ -9,9 +9,6 @@ import { fetchAccountOptions, fetchCategoryOptions } from '@/firebase'
 import { transactionCache } from '@/services/transactionCache'
 import { useSampleData } from '@/firebase/config'
 
-import { DEFAULT_CATEGORY_OPTIONS } from '@/types/category'
-import { DEFAULT_ACCOUNT_OPTIONS } from '@/types/account'
-
 export function usePdfImport() {
   const step = ref<ImportStep>('upload')
   const transactions = ref<ImportedTransaction[]>([])
@@ -26,7 +23,7 @@ export function usePdfImport() {
   const parser = new AxisBankParser()
 
   /**
-   * Load category and account options from Firestore categories collection
+   * Load category and account options directly from Firestore
    */
   async function loadOptions() {
     try {
@@ -38,8 +35,8 @@ export function usePdfImport() {
       categories.value = cats
     } catch (err) {
       console.error('Failed to load accounts/categories from Firestore for import:', err)
-      accounts.value = DEFAULT_ACCOUNT_OPTIONS
-      categories.value = DEFAULT_CATEGORY_OPTIONS
+      accounts.value = []
+      categories.value = []
     }
   }
 

@@ -12,7 +12,6 @@ export {
   deleteAccountOption,
   syncDefaultAccountOptions,
   fetchCategoryOptions,
-  initializeDefaultCategoryOptions,
   addCategoryOption,
   updateCategoryOption,
   deleteCategoryOption,

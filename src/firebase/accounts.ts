@@ -16,7 +16,6 @@ const ACCOUNTS_COLLECTION = 'accounts'
 export async function fetchAccountOptions(): Promise<AccountOption[]> {
   if (!db) throw new Error('Firebase is not initialized')
   try {
-    await syncDefaultAccountOptions()
     const querySnapshot = await getDocs(collection(db, ACCOUNTS_COLLECTION))
     if (querySnapshot.empty) {
       await initializeDefaultAccountOptions()

@@ -142,6 +142,14 @@ export const CATEGORY_KEYWORD_RULES: CategoryKeywordRule[] = [
   {
     keywords: ['zerodha', 'groww', 'upstox', 'angelone', 'angel one', 'kite', 'sharekhan', 'motilal', 'mutual fund', 'investment', 'stocks'],
     categoryId: 'zerodha'
+  },
+  {
+    keywords: ['service center', 'fastag', 'toll plaza', 'car wash', 'bike service', 'vehicle service'],
+    categoryId: 'vehicle-care'
+  },
+  {
+    keywords: ['insurance', 'star health', 'hdfc ergo', 'tata aia', 'lic of india', 'max bupa', 'policybazaar', 'care health'],
+    categoryId: 'insurance'
   }
 ]
 
