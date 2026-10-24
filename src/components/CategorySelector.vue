@@ -104,11 +104,14 @@
               :title="getCategoryTooltip(category)"
             >
               <span class="cat-btn-content">
-                <span class="category-icon me-1">{{ category.icon || getCategoryIcon(category.label) }}</span>
+                <span class="category-icon">{{ category.icon || getCategoryIcon(category.label) }}</span>
                 <span class="category-label-text">{{ category.label }}</span>
               </span>
-              <i v-if="category.subcategories && category.subcategories.length > 0"
-                 class="bi bi-chevron-right subcategory-arrow"></i>
+              <i
+                v-if="category.subcategories && category.subcategories.length > 0"
+                class="bi bi-chevron-right subcategory-arrow"
+              ></i>
+              <span v-else class="subcategory-arrow-spacer"></span>
             </button>
           </template>
 
@@ -168,10 +171,10 @@
             @click="selectParentOnly"
           >
             <span class="cat-btn-content">
-              <span class="category-icon me-1">{{ selectedParentCategory?.icon || getCategoryIcon(selectedParentCategory?.label || '') }}</span>
-              <span>{{ selectedParentCategory?.label }}</span>
+              <span class="category-icon">{{ selectedParentCategory?.icon || getCategoryIcon(selectedParentCategory?.label || '') }}</span>
+              <span class="category-label-text">{{ selectedParentCategory?.label }}</span>
             </span>
-            <small class="parent-label">General</small>
+            <small class="parent-label badge bg-light text-muted border">General</small>
           </button>
 
           <!-- Subcategories -->
@@ -183,9 +186,10 @@
             @click="selectSubcategory(subcategory)"
           >
             <span class="cat-btn-content">
-              <span class="category-icon me-1">{{ subcategory.icon || getCategoryIcon(subcategory.label) }}</span>
-              <span>{{ subcategory.label }}</span>
+              <span class="category-icon">{{ subcategory.icon || getCategoryIcon(subcategory.label) }}</span>
+              <span class="category-label-text">{{ subcategory.label }}</span>
             </span>
+            <span class="subcategory-arrow-spacer"></span>
           </button>
 
           <!-- Add New Subcategory Button -->
@@ -586,23 +590,65 @@ const cancelAddSubcategory = () => {
 }
 
 .category-btn {
-  padding: 1rem;
+  padding: 0.75rem 0.875rem;
   border: 1px solid #e9ecef;
   border-radius: 0.5rem;
   background-color: white;
   color: #495057;
   font-size: 0.875rem;
   font-weight: 500;
-  text-align: center;
+  text-align: left;
   transition: all 0.2s ease;
-  min-height: 60px;
+  min-height: 52px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   position: relative;
   width: 100%;
-  gap: 0.25rem;
+  gap: 0.375rem;
+  box-sizing: border-box;
+}
+
+.cat-btn-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.category-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  width: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.category-label-text {
+  font-weight: 500;
+  color: #212529;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.subcategory-arrow {
+  font-size: 0.75rem;
+  color: #adb5bd;
+  flex-shrink: 0;
+  margin-left: 0.25rem;
+}
+
+.subcategory-arrow-spacer {
+  width: 14px;
+  flex-shrink: 0;
 }
 
 .category-btn.can-add-subcategory {
@@ -716,49 +762,49 @@ const cancelAddSubcategory = () => {
   color: white;
 }
 
-.category-btn.has-subcategories {
-  flex-direction: row;
-  justify-content: space-between;
-  padding: 1rem 0.75rem;
-  gap: 0;
-}
-
-.category-btn.has-subcategories .subcategory-arrow {
-  font-size: 0.75rem;
-  margin-left: 0.5rem;
-  opacity: 0.7;
+.category-btn.active .category-label-text,
+.category-btn.active .subcategory-arrow {
+  color: white;
+  opacity: 1;
 }
 
 .category-btn.parent-option {
-  flex-direction: column;
-  gap: 0.25rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .parent-label {
   font-size: 0.75rem;
-  opacity: 0.7;
+  opacity: 0.8;
   font-weight: 400;
 }
 
 .add-new-btn {
   background-color: #f8f9fa !important;
-  border: 2px dashed #dc3545 !important;
+  border: 1.5px dashed #dc3545 !important;
   color: #dc3545 !important;
-  flex-direction: column;
-  gap: 0.25rem;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  text-align: center !important;
 }
 
 .add-new-btn:hover {
-  background-color: rgba(220, 53, 69, 0.1) !important;
+  background-color: rgba(220, 53, 69, 0.08) !important;
   border-color: #dc3545 !important;
 }
 
 .add-new-btn i {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
 .add-new-btn span {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
