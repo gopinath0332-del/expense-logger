@@ -1,3 +1,4 @@
+import '@/polyfills'
 import * as pdfjsLib from 'pdfjs-dist'
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import type { RawBankRow, ImportedTransaction } from '@/types/pdfImport'
@@ -137,10 +138,33 @@ export class AxisBankParser {
 
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
       const page = await pdf.getPage(pageNum)
-      const content = await page.getTextContent()
+      let rawItems: unknown[] = []
+      try {
+        const content = await page.getTextContent()
+        rawItems = content.items
+      } catch (err) {
+        console.warn('page.getTextContent() failed, falling back to stream reader:', err)
+        const pageWithStream = page as {
+          streamTextContent?: (params?: unknown) => ReadableStream<{ items?: unknown[] }>
+        }
+        if (typeof pageWithStream.streamTextContent === 'function') {
+          const stream = pageWithStream.streamTextContent()
+          const reader = stream.getReader()
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            if (value && Array.isArray(value.items)) {
+              rawItems.push(...value.items)
+            }
+          }
+          reader.releaseLock()
+        } else {
+          throw err
+        }
+      }
 
       // Normalize items
-      const items = content.items
+      const items = rawItems
         .map((item: unknown) => {
           const textItem = item as { str: string; transform: number[] }
           return {
