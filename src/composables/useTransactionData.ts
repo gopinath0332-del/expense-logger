@@ -1,4 +1,4 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import type { TransactionDay, DashboardSummary } from '@/types/transaction'
 import { useSampleData } from '@/firebase/config'
 import { fetchTransactions, fetchTransactionsByMonth } from '@/firebase/transactions'
@@ -247,16 +247,10 @@ export function useTransactionData() {
 
   // Helper function to filter sample data by month
   const filterSampleDataByMonth = (data: TransactionDay[], year: number, month: number): TransactionDay[] => {
-    return data.filter(day => {
-      const dayDate = new Date(day.date)
-      return dayDate.getFullYear() === year && dayDate.getMonth() + 1 === month
-    })
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const prefix = `${year}-${pad(month)}`
+    return data.filter(day => day.date.startsWith(prefix))
   }
-
-  // Load transactions when component is mounted
-  onMounted(() => {
-    loadTransactions()
-  })
 
   // Computed summary
   const summary = computed<DashboardSummary>(() => {

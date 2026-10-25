@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore'
 import { db } from './config'
 import type { Transaction, TransactionDay } from '@/types/transaction'
+import { transactionCache } from '@/services/transactionCache'
 
 const COLLECTION_NAME = 'transactions'
 
@@ -28,6 +29,15 @@ interface LegacyTransactionData {
   description: string
   note?: string
   amount: number
+}
+
+export function getMonthDateRange(year: number, month: number): { startDate: string; endDate: string } {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const lastDay = new Date(year, month, 0).getDate()
+  return {
+    startDate: `${year}-${pad(month)}-01`,
+    endDate: `${year}-${pad(month)}-${pad(lastDay)}`
+  }
 }
 
 export async function fetchTransactions(): Promise<TransactionDay[]> {
@@ -50,9 +60,7 @@ interface FilteredQuerySnapshot {
 export async function fetchTransactionsByMonth(year: number, month: number): Promise<TransactionDay[]> {
   if (!db) throw new Error('Firebase is not initialized')
   try {
-    // Create date range for the month (month is 0-based in Date constructor)
-    const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
-    const endDate = new Date(year, month, 0).toISOString().split('T')[0] // Last day of the month
+    const { startDate, endDate } = getMonthDateRange(year, month)
 
     // Use server-side filtering with composite index for efficient queries
     const q = query(
@@ -92,7 +100,8 @@ function processTransactionData(querySnapshot: QuerySnapshot<DocumentData> | Fil
     }
     const date = data.date
     if (!transactionsByDate.has(date)) {
-      const dateObj = new Date(date)
+      const [y, m, d] = date.split('-').map(Number)
+      const dateObj = new Date(y, m - 1, d)
       transactionsByDate.set(date, {
         date,
         dateNumber: dateObj.getDate(),
@@ -123,6 +132,7 @@ export async function addTransaction(
   if (!db) throw new Error('Firebase is not initialized')
   try {
     const docRef = await addDoc(collection(db, COLLECTION_NAME), transaction)
+    transactionCache.clear()
     return docRef.id
   } catch (error) {
     console.error('Error adding transaction:', error)
@@ -138,6 +148,7 @@ export async function updateTransaction(
   try {
     const docRef = doc(db!, COLLECTION_NAME, id)
     await updateDoc(docRef, transaction as DocumentData)
+    transactionCache.clear()
   } catch (error) {
     console.error('Error updating transaction:', error)
     throw error
@@ -148,8 +159,10 @@ export async function deleteTransaction(id: string): Promise<void> {
   if (!db) throw new Error('Firebase is not initialized')
   try {
     await deleteDoc(doc(db!, COLLECTION_NAME, id))
+    transactionCache.clear()
   } catch (error) {
     console.error('Error deleting transaction:', error)
     throw error
   }
 }
+
