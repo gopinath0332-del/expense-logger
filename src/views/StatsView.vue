@@ -16,7 +16,7 @@
           type="button"
           class="segment-btn"
           :class="{ active: activeSegment === 'Budget' }"
-          @click="handleOtherSegment('Budget')"
+          @click="activeSegment = 'Budget'"
         >
           Budget
         </button>
@@ -80,45 +80,57 @@
       </button>
     </div>
 
-    <!-- Main Content: Pie Chart -->
-    <div class="chart-section py-2">
-      <StatsPieChart :slices="categorySlices" @selectCategory="handleSelectCategory" />
-    </div>
-
-    <!-- Category Breakdown List -->
-    <div class="breakdown-section">
-      <div v-if="categorySlices.length === 0" class="text-center text-muted py-4">
-        No {{ activeType }} transactions in this period
+    <!-- Main Content: Stats (Pie Chart & Breakdown) vs Budget -->
+    <template v-if="activeSegment === 'Stats'">
+      <div class="chart-section py-2">
+        <StatsPieChart :slices="categorySlices" @selectCategory="handleSelectCategory" />
       </div>
-      <div v-else class="category-list">
-        <div
-          v-for="cat in categorySlices"
-          :key="cat.id"
-          class="category-row d-flex align-items-center justify-content-between px-3 py-2"
-          @click="handleSelectCategory(cat.name)"
-        >
-          <!-- Left: Percentage badge + Category Name with emoji -->
-          <div class="d-flex align-items-center gap-3 min-width-0">
-            <span
-              class="percent-badge"
-              :style="{ backgroundColor: cat.color }"
-            >
-              {{ Math.round(cat.percent) }}%
-            </span>
 
-            <div class="category-info text-truncate">
-              <span v-if="cat.emoji" class="category-emoji me-1">{{ cat.emoji }}</span>
-              <span class="category-label fw-semibold">{{ cat.name }}</span>
+      <!-- Category Breakdown List -->
+      <div class="breakdown-section">
+        <div v-if="categorySlices.length === 0" class="text-center text-muted py-4">
+          No {{ activeType }} transactions in this period
+        </div>
+        <div v-else class="category-list">
+          <div
+            v-for="cat in categorySlices"
+            :key="cat.id"
+            class="category-row d-flex align-items-center justify-content-between px-3 py-2"
+            @click="handleSelectCategory(cat.name)"
+          >
+            <!-- Left: Percentage badge + Category Name with emoji -->
+            <div class="d-flex align-items-center gap-3 min-width-0">
+              <span
+                class="percent-badge"
+                :style="{ backgroundColor: cat.color }"
+              >
+                {{ Math.round(cat.percent) }}%
+              </span>
+
+              <div class="category-info text-truncate">
+                <span v-if="cat.emoji" class="category-emoji me-1">{{ cat.emoji }}</span>
+                <span class="category-label fw-semibold">{{ cat.name }}</span>
+              </div>
             </div>
-          </div>
 
-          <!-- Right: Total Amount -->
-          <div class="category-amount fw-bold">
-            ₹ {{ formatNumber(cat.total) }}
+            <!-- Right: Total Amount -->
+            <div class="category-amount fw-bold">
+              ₹ {{ formatNumber(cat.total) }}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
+
+    <!-- Budget Overview View -->
+    <template v-else-if="activeSegment === 'Budget'">
+      <BudgetOverview
+        :overall="overallBudgetProgress"
+        :categories="categoryBudgetList"
+        :formatNumber="formatNumber"
+        @openSettings="openBudgetSettings"
+      />
+    </template>
 
     <!-- Category Details Modal (Transactions in selected category) -->
     <div
@@ -171,23 +183,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import BottomNavigation from '@/components/dashboard/BottomNavigation.vue'
 import TransactionItem from '@/components/dashboard/TransactionItem.vue'
 import StatsPieChart, { type CategorySliceData } from '@/components/stats/StatsPieChart.vue'
+import BudgetOverview from '@/components/budget/BudgetOverview.vue'
 import ToastNotification from '@/components/ToastNotification.vue'
 import { useTransactionData } from '@/composables/useTransactionData'
+import { useBudgetData } from '@/composables/useBudgetData'
 import { useFormatting } from '@/composables/useFormatting'
 import { getCategoryMeta } from '@/utils/categoryMetadata'
 import type { NavItem, Transaction } from '@/types/transaction'
 
+const route = useRoute()
 const router = useRouter()
 const { transactions, summary, loadTransactionsByMonth } = useTransactionData()
+const { loadData: loadBudgetData, computeCategoryProgress, computeOverallProgress } = useBudgetData()
 const { formatNumber, formatMonthYear } = useFormatting()
 
 // Top bar controls
-const activeSegment = ref<'Stats' | 'Budget' | 'Note'>('Stats')
+const activeSegment = ref<'Stats' | 'Budget' | 'Note'>(
+  route.query.segment === 'Budget' ? 'Budget' : 'Stats'
+)
 const periodType = ref<'M' | 'W' | 'Y'>('M')
 const isPeriodDropdownOpen = ref(false)
 const toastMessage = ref('')
@@ -295,8 +313,29 @@ const selectedCategoryTotal = computed(() => {
   return selectedCategoryTransactions.value.reduce((acc, cur) => acc + cur.amount, 0)
 })
 
+// Budget Computeds
+const categoryBudgetList = computed(() => {
+  return computeCategoryProgress(transactions.value, activeType.value, false)
+})
+
+const overallBudgetProgress = computed(() => {
+  return computeOverallProgress(transactions.value, currentDate.value, activeType.value)
+})
+
+const openBudgetSettings = () => {
+  router.push({ name: 'budgetSetting' })
+}
+
+onMounted(() => {
+  loadBudgetData(activeType.value)
+})
+
+watch(activeType, (newType) => {
+  loadBudgetData(newType)
+})
+
 // Handlers
-const handleOtherSegment = (seg: 'Budget' | 'Note') => {
+const handleOtherSegment = (seg: 'Note') => {
   activeSegment.value = seg
   toastMessage.value = `${seg} feature is coming soon`
   setTimeout(() => {
@@ -350,7 +389,7 @@ const handleNavClick = (item: NavItem) => {
   if (item.id === 'calendar') {
     router.push({ name: 'dashboard' })
   } else if (item.id === 'more') {
-    router.push({ name: 'importPdf' })
+    router.push({ name: 'settings' })
   }
 }
 </script>

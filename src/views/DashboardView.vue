@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-container">
-    <DashboardHeader />
+    <DashboardHeader @openSettings="handleOpenSettings" />
     <DashboardDateNav :currentMonth="currentMonth" @previousMonth="goToPreviousMonth" @nextMonth="goToNextMonth" />
     <DashboardTabs :tabs="tabs" :activeTab="activeTab" @update:activeTab="activeTab = $event" />
     <DashboardSummary :summary="{ income: summary.income, expenses: summary.expenses, balance: summary.total }" :formatCurrency="formatCurrency" />
@@ -124,8 +124,12 @@ const handleNavClick = (item: NavItem) => {
   if (item.id === 'stats') {
     router.push({ name: 'stats' })
   } else if (item.id === 'more') {
-    router.push({ name: 'importPdf' })
+    router.push({ name: 'settings' })
   }
+}
+
+const handleOpenSettings = () => {
+  router.push({ name: 'settings' })
 }
 
 // Month navigation handlers
