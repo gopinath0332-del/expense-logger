@@ -1,173 +1,158 @@
 <template>
   <div class="stats-view-container">
-    <!-- Top Bar: Segmented Control & Period Selector -->
-    <div class="stats-top-bar d-flex justify-content-between align-items-center px-3 pt-3 pb-2">
-      <!-- Segmented Pill: Stats | Budget | Note -->
-      <div class="segmented-control">
-        <button
-          type="button"
-          class="segment-btn"
-          :class="{ active: activeSegment === 'Stats' }"
-          @click="activeSegment = 'Stats'"
-        >
-          Stats
-        </button>
-        <button
-          type="button"
-          class="segment-btn"
-          :class="{ active: activeSegment === 'Budget' }"
-          @click="activeSegment = 'Budget'"
-        >
-          Budget
-        </button>
-        <button
-          type="button"
-          class="segment-btn"
-          :class="{ active: activeSegment === 'Note' }"
-          @click="handleOtherSegment('Note')"
-        >
-          Note
-        </button>
-      </div>
-
-      <!-- Period Filter Dropdown (M ⌄) -->
-      <div class="dropdown">
-        <button
-          class="period-select-btn d-flex align-items-center gap-1"
-          type="button"
-          @click="isPeriodDropdownOpen = !isPeriodDropdownOpen"
-        >
-          <span>{{ periodType }}</span>
-          <i class="bi bi-chevron-down fs-7"></i>
-        </button>
-
-        <div v-if="isPeriodDropdownOpen" class="period-dropdown-menu">
-          <button class="dropdown-item" :class="{ active: periodType === 'M' }" @click="selectPeriod('M')">
-            Monthly (M)
-          </button>
-          <button class="dropdown-item" :class="{ active: periodType === 'W' }" @click="selectPeriod('W')">
-            Weekly (W)
-          </button>
-          <button class="dropdown-item" :class="{ active: periodType === 'Y' }" @click="selectPeriod('Y')">
-            Yearly (Y)
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Date Navigation: < Aug 2026 > -->
-    <div class="date-nav d-flex justify-content-between align-items-center px-3 py-2">
-      <i class="bi bi-chevron-left fs-5 cursor-pointer" @click="goToPreviousMonth"></i>
-      <h6 class="mb-0 fw-semibold">{{ currentMonthLabel }}</h6>
-      <i class="bi bi-chevron-right fs-5 cursor-pointer" @click="goToNextMonth"></i>
-    </div>
-
-    <!-- Income / Expense Type Toggle Tabs -->
-    <div class="type-toggle-tabs">
-      <button
-        class="type-tab-btn"
-        :class="{ active: activeType === 'income' }"
-        @click="activeType = 'income'"
-      >
-        Income
-      </button>
-      <button
-        class="type-tab-btn"
-        :class="{ active: activeType === 'expense' }"
-        @click="activeType = 'expense'"
-      >
-        Exp. ₹ {{ formatNumber(summary.expenses) }}
-      </button>
-    </div>
-
-    <!-- Main Content: Stats (Pie Chart & Breakdown) vs Budget -->
-    <template v-if="activeSegment === 'Stats'">
-      <div class="chart-section py-2">
-        <StatsPieChart :slices="categorySlices" @selectCategory="handleSelectCategory" />
-      </div>
-
-      <!-- Category Breakdown List -->
-      <div class="breakdown-section">
-        <div v-if="categorySlices.length === 0" class="text-center text-muted py-4">
-          No {{ activeType }} transactions in this period
-        </div>
-        <div v-else class="category-list">
-          <div
-            v-for="cat in categorySlices"
-            :key="cat.id"
-            class="category-row d-flex align-items-center justify-content-between px-3 py-2"
-            @click="handleSelectCategory(cat.name)"
-          >
-            <!-- Left: Percentage badge + Category Name with emoji -->
-            <div class="d-flex align-items-center gap-3 min-width-0">
-              <span
-                class="percent-badge"
-                :style="{ backgroundColor: cat.color }"
-              >
-                {{ Math.round(cat.percent) }}%
-              </span>
-
-              <div class="category-info text-truncate">
-                <span v-if="cat.emoji" class="category-emoji me-1">{{ cat.emoji }}</span>
-                <span class="category-label fw-semibold">{{ cat.name }}</span>
-              </div>
-            </div>
-
-            <!-- Right: Total Amount -->
-            <div class="category-amount fw-bold">
-              ₹ {{ formatNumber(cat.total) }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </template>
-
-    <!-- Budget Overview View -->
-    <template v-else-if="activeSegment === 'Budget'">
-      <BudgetOverview
-        :overall="overallBudgetProgress"
-        :categories="categoryBudgetList"
+    <!-- Category Subcategories Detail View -->
+    <template v-if="activeSegment === 'Stats' && selectedCategoryName">
+      <CategoryDetailView
+        :categoryName="selectedCategoryName"
+        :currentDate="currentDate"
+        :currentMonthLabel="currentMonthLabel"
+        :activeType="activeType"
+        :transactions="transactions"
+        :allSampleTransactions="sampleTransactions"
+        :categoryOptions="categoryOptions"
         :formatNumber="formatNumber"
-        @openSettings="openBudgetSettings"
+        @back="selectedCategoryName = null"
+        @prevMonth="goToPreviousMonth"
+        @nextMonth="goToNextMonth"
+        @selectDate="handleSelectDate"
+        @editTransaction="handleEditTransaction"
       />
     </template>
 
-    <!-- Category Details Modal (Transactions in selected category) -->
-    <div
-      v-if="selectedCategoryName"
-      class="cat-modal-backdrop"
-      @click.self="selectedCategoryName = null"
-    >
-      <div class="cat-modal-card">
-        <div class="cat-modal-header d-flex justify-content-between align-items-center p-3 border-bottom">
-          <div class="d-flex align-items-center gap-2">
-            <span v-if="selectedCategoryMeta?.emoji" class="fs-4">{{ selectedCategoryMeta.emoji }}</span>
-            <div>
-              <h6 class="mb-0 fw-bold">{{ selectedCategoryName }}</h6>
-              <small class="text-muted">
-                {{ selectedCategoryTransactions.length }} transactions • ₹ {{ formatNumber(selectedCategoryTotal) }}
-              </small>
-            </div>
-          </div>
+    <!-- Standard Stats Overview or Budget View -->
+    <template v-else>
+      <!-- Top Bar: Segmented Control & Period Selector -->
+      <div class="stats-top-bar d-flex justify-content-between align-items-center px-3 pt-3 pb-2">
+        <!-- Segmented Pill: Stats | Budget | Note -->
+        <div class="segmented-control">
           <button
             type="button"
-            class="btn-close"
-            aria-label="Close"
-            @click="selectedCategoryName = null"
-          ></button>
+            class="segment-btn"
+            :class="{ active: activeSegment === 'Stats' }"
+            @click="activeSegment = 'Stats'"
+          >
+            Stats
+          </button>
+          <button
+            type="button"
+            class="segment-btn"
+            :class="{ active: activeSegment === 'Budget' }"
+            @click="activeSegment = 'Budget'"
+          >
+            Budget
+          </button>
+          <button
+            type="button"
+            class="segment-btn"
+            :class="{ active: activeSegment === 'Note' }"
+            @click="handleOtherSegment('Note')"
+          >
+            Note
+          </button>
         </div>
 
-        <div class="cat-modal-body p-0">
-          <TransactionItem
-            v-for="transaction in selectedCategoryTransactions"
-            :key="transaction.id"
-            :transaction="transaction"
-            :formatNumber="formatNumber"
-            @select="handleEditTransaction"
-          />
+        <!-- Period Filter Dropdown (M ⌄) -->
+        <div class="dropdown">
+          <button
+            class="period-select-btn d-flex align-items-center gap-1"
+            type="button"
+            @click="isPeriodDropdownOpen = !isPeriodDropdownOpen"
+          >
+            <span>{{ periodType }}</span>
+            <i class="bi bi-chevron-down fs-7"></i>
+          </button>
+
+          <div v-if="isPeriodDropdownOpen" class="period-dropdown-menu">
+            <button class="dropdown-item" :class="{ active: periodType === 'M' }" @click="selectPeriod('M')">
+              Monthly (M)
+            </button>
+            <button class="dropdown-item" :class="{ active: periodType === 'W' }" @click="selectPeriod('W')">
+              Weekly (W)
+            </button>
+            <button class="dropdown-item" :class="{ active: periodType === 'Y' }" @click="selectPeriod('Y')">
+              Yearly (Y)
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <!-- Date Navigation: < Aug 2026 > -->
+      <div class="date-nav d-flex justify-content-between align-items-center px-3 py-2">
+        <i class="bi bi-chevron-left fs-5 cursor-pointer" @click="goToPreviousMonth"></i>
+        <h6 class="mb-0 fw-semibold">{{ currentMonthLabel }}</h6>
+        <i class="bi bi-chevron-right fs-5 cursor-pointer" @click="goToNextMonth"></i>
+      </div>
+
+      <!-- Income / Expense Type Toggle Tabs -->
+      <div class="type-toggle-tabs">
+        <button
+          class="type-tab-btn"
+          :class="{ active: activeType === 'income' }"
+          @click="activeType = 'income'"
+        >
+          Income
+        </button>
+        <button
+          class="type-tab-btn"
+          :class="{ active: activeType === 'expense' }"
+          @click="activeType = 'expense'"
+        >
+          Exp. ₹ {{ formatNumber(summary.expenses) }}
+        </button>
+      </div>
+
+      <!-- Main Content: Stats (Pie Chart & Breakdown) vs Budget -->
+      <template v-if="activeSegment === 'Stats'">
+        <div class="chart-section py-2">
+          <StatsPieChart :slices="categorySlices" @selectCategory="handleSelectCategory" />
+        </div>
+
+        <!-- Category Breakdown List -->
+        <div class="breakdown-section">
+          <div v-if="categorySlices.length === 0" class="text-center text-muted py-4">
+            No {{ activeType }} transactions in this period
+          </div>
+          <div v-else class="category-list">
+            <div
+              v-for="cat in categorySlices"
+              :key="cat.id"
+              class="category-row d-flex align-items-center justify-content-between px-3 py-2"
+              @click="handleSelectCategory(cat.name)"
+            >
+              <!-- Left: Percentage badge + Category Name with emoji -->
+              <div class="d-flex align-items-center gap-3 min-width-0">
+                <span
+                  class="percent-badge"
+                  :style="{ backgroundColor: cat.color }"
+                >
+                  {{ Math.round(cat.percent) }}%
+                </span>
+
+                <div class="category-info text-truncate">
+                  <span v-if="cat.emoji" class="category-emoji me-1">{{ cat.emoji }}</span>
+                  <span class="category-label fw-semibold">{{ cat.name }}</span>
+                </div>
+              </div>
+
+              <!-- Right: Total Amount -->
+              <div class="category-amount fw-bold">
+                ₹ {{ formatNumber(cat.total) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Budget Overview View -->
+      <template v-else-if="activeSegment === 'Budget'">
+        <BudgetOverview
+          :overall="overallBudgetProgress"
+          :categories="categoryBudgetList"
+          :formatNumber="formatNumber"
+          @openSettings="openBudgetSettings"
+        />
+      </template>
+    </template>
 
     <!-- Toast Notification for Budget / Note info -->
     <ToastNotification
@@ -186,21 +171,26 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import BottomNavigation from '@/components/dashboard/BottomNavigation.vue'
-import TransactionItem from '@/components/dashboard/TransactionItem.vue'
 import StatsPieChart, { type CategorySliceData } from '@/components/stats/StatsPieChart.vue'
+import CategoryDetailView from '@/components/stats/CategoryDetailView.vue'
 import BudgetOverview from '@/components/budget/BudgetOverview.vue'
 import ToastNotification from '@/components/ToastNotification.vue'
 import { useTransactionData } from '@/composables/useTransactionData'
 import { useBudgetData } from '@/composables/useBudgetData'
 import { useFormatting } from '@/composables/useFormatting'
 import { getCategoryMeta } from '@/utils/categoryMetadata'
+import { fetchCategoryOptions } from '@/firebase'
 import type { NavItem, Transaction } from '@/types/transaction'
+import type { CategoryOption } from '@/types/category'
 
 const route = useRoute()
 const router = useRouter()
-const { transactions, summary, loadTransactionsByMonth } = useTransactionData()
+const { transactions, summary, sampleTransactions, loadTransactionsByMonth } = useTransactionData()
 const { loadData: loadBudgetData, computeCategoryProgress, computeOverallProgress } = useBudgetData()
 const { formatNumber, formatMonthYear } = useFormatting()
+
+// Category options for subcategories definition
+const categoryOptions = ref<CategoryOption[]>([])
 
 // Top bar controls
 const activeSegment = ref<'Stats' | 'Budget' | 'Note'>(
@@ -296,22 +286,6 @@ const categorySlices = computed<CategorySliceData[]>(() => {
   return list
 })
 
-// Drilldown details
-const selectedCategoryMeta = computed(() => {
-  if (!selectedCategoryName.value) return null
-  return getCategoryMeta(selectedCategoryName.value)
-})
-
-const selectedCategoryTransactions = computed(() => {
-  if (!selectedCategoryName.value) return []
-  return flatTransactions.value.filter(
-    t => (t.category?.trim() || 'Other').toLowerCase() === selectedCategoryName.value!.toLowerCase()
-  )
-})
-
-const selectedCategoryTotal = computed(() => {
-  return selectedCategoryTransactions.value.reduce((acc, cur) => acc + cur.amount, 0)
-})
 
 // Budget Computeds
 const categoryBudgetList = computed(() => {
@@ -326,13 +300,22 @@ const openBudgetSettings = () => {
   router.push({ name: 'budgetSetting' })
 }
 
-onMounted(() => {
+onMounted(async () => {
   loadBudgetData(activeType.value)
+  try {
+    categoryOptions.value = await fetchCategoryOptions()
+  } catch (err) {
+    console.error('Failed to load category options:', err)
+  }
 })
 
 watch(activeType, (newType) => {
   loadBudgetData(newType)
 })
+
+const handleSelectDate = (newDate: Date) => {
+  currentDate.value = newDate
+}
 
 // Handlers
 const handleOtherSegment = (seg: 'Note') => {

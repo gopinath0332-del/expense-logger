@@ -281,6 +281,7 @@ export function useTransactionData() {
     summary,
     loading,
     error,
+    sampleTransactions,
     loadTransactions,
     loadTransactionsByMonth
   }
